@@ -6,15 +6,15 @@
     <title>Plataforma de Cursos | JB Jidousha</title>
     
     <style>
-        /* Paleta de Cores Estilo Corporativo/Claro */
+        /* Paleta de Cores Estilo Corporativo/Claro OTIMIZADA */
         :root {
             --bg-color: #FFFFFF; /* Fundo Branco Limpo */
             --main-text: #212529; /* Texto Principal Escuro */
             --light-text: #6c757d; /* Cinza para Subtítulos */
-            --accent-color: #DAA520; /* Dourado/Amarelo (Acento para JB) */
-            --action-color: #007bff; /* Azul de Ação/Botões */
+            --accent-color: #DAA520; /* DOURADO/AMARELO (Acento) */
+            --action-color: #007bff; /* AZUL DE AÇÃO/BOTÕES */
             --sidebar-bg: #f8f9fa; /* Fundo Cinza Claro para Sidebar */
-            --border-color: #e9ecef; /* Borda Suave */
+            --border-color: #d1e2ff; /* Azul Claro Suave para Bordas */
         }
 
         body {
@@ -24,13 +24,14 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Bar e Estrutura Principal */
+        /* BARRA SUPERIOR (MUDANÇA DE ESTILO PARA REFLETIR O AZUL/DOURADO) */
         .top-bar {
             background-color: white;
             padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 3px solid var(--accent-color); /* Linha DOURADA de destaque */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -42,7 +43,7 @@
             font-weight: 600;
         }
         .top-bar button {
-            background-color: var(--action-color);
+            background-color: var(--action-color); /* Botão azul de ação */
             color: white;
             border: none;
             padding: 8px 15px;
@@ -50,13 +51,15 @@
             cursor: pointer;
             font-size: 0.9em;
             font-weight: bold;
+            transition: background-color 0.3s;
         }
+        .top-bar button:hover { background-color: #0056b3; }
 
 
-        /* Estrutura Principal: VÍDEO E CONTEÚDO OCUPANDO A LARGURA MÁXIMA */
+        /* Estrutura Principal */
         .platform-container {
             display: flex;
-            flex-direction: column; /* Padrão Mobile */
+            flex-direction: column; 
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -64,30 +67,21 @@
         /* 1. Área do Conteúdo Principal (VÍDEO) */
         .main-content {
             flex: 1;
-            padding: 0; /* Remove padding lateral no mobile para full-width */
+            padding: 0; 
             margin-bottom: 20px;
         }
 
-        /* OTIMIZAÇÃO: Aumenta o tamanho do Player de Vídeo */
         .video-player-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 - Ocupa a largura total */
+            padding-top: 56.25%; 
             background-color: black;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-        #video-player {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
         }
 
         /* Detalhes da Aula */
         .lesson-details {
-            padding: 20px; /* Adiciona padding para o texto */
+            padding: 20px; 
         }
         .lesson-details h1 {
             font-size: 2em;
@@ -99,11 +93,6 @@
             font-size: 1em;
             margin-bottom: 15px;
         }
-        .lesson-details p {
-            color: var(--light-text);
-            line-height: 1.6;
-            font-size: 0.95em;
-        }
         
         /* Botões de Navegação */
         .navigation-buttons {
@@ -114,7 +103,7 @@
             border-top: 1px solid var(--border-color);
         }
         .navigation-buttons button {
-            background-color: var(--action-color);
+            background-color: var(--action-color); /* Botões Azuis de Ação */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -122,12 +111,11 @@
             font-weight: bold;
         }
 
-        /* 2. Sidebar (Lista de Aulas) - Visível e Clean */
+        /* 2. Sidebar (Lista de Aulas) */
         .sidebar {
-            width: 100%; /* Padrão Mobile: Ocupa a largura toda */
+            width: 100%; 
             background-color: var(--sidebar-bg);
             padding: 20px;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
             border-top: 1px solid var(--border-color);
         }
         .sidebar h2 {
@@ -135,18 +123,6 @@
             padding-bottom: 10px;
             border-bottom: 2px solid var(--accent-color); /* Linha Dourada de Destaque */
             margin-bottom: 15px;
-        }
-        .module-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .module-list h3 {
-            font-size: 1.1em;
-            padding: 15px 0 5px 0;
-            color: var(--main-text);
-            margin: 0;
-            font-weight: bold;
         }
         .lesson-item {
             padding: 10px 0;
@@ -159,39 +135,42 @@
             align-items: center;
         }
         .lesson-item.active {
-            background-color: #e9ecef; /* Fundo cinza claro para ativo */
-            color: var(--action-color);
+            background-color: var(--border-color); /* Fundo sutil */
+            color: var(--action-color); /* Texto Azul Forte */
             font-weight: bold;
             border-left: 4px solid var(--action-color);
             padding-left: 16px;
-            margin-left: -16px;
         }
+        
+        /* Ícones de Status */
         .lesson-item .status-icon {
-            font-size: 0.8em;
             color: var(--light-text);
         }
         .lesson-item.active .status-icon {
             color: var(--action-color);
         }
+        .lesson-item .status-icon.completed {
+            color: var(--accent-color); /* Dourado para aula concluída (checkmark) */
+        }
 
-        /* Responsividade: Layout de Duas Colunas para Desktop/Tablet */
+
+        /* Responsividade (Desktop/Tablet) */
         @media (min-width: 1024px) {
             .platform-container {
                 flex-direction: row; 
             }
             .main-content {
-                flex: 2; /* Main content ocupa 2/3 da tela */
-                padding: 20px 20px 20px 0; /* Remove padding da esquerda */
+                flex: 2; 
+                padding: 20px 20px 20px 0; 
             }
             .sidebar {
-                width: 350px; /* Largura fixa da sidebar */
+                width: 350px;
                 min-width: 350px;
                 height: 100vh;
                 overflow-y: auto;
                 order: 2; 
                 padding: 20px;
                 border-left: 1px solid var(--border-color);
-                box-shadow: none;
             }
         }
     </style>
@@ -209,7 +188,7 @@
             
             <div class="video-player-container">
                 <iframe id="video-player"
-                    src="https://www.youtube.com/watch?v=isW_0Kk8Jlw1" 
+                    src="https://www.youtube.com/watch?v=isW_0Kk8Jlw2" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
