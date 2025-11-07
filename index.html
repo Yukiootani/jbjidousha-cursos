@@ -6,14 +6,15 @@
     <title>Plataforma de Cursos | JB Jidousha</title>
     
     <style>
-        /* Paleta de Cores Estilo Educacional Premium */
+        /* Paleta de Cores Estilo Corporativo/Claro */
         :root {
-            --bg-color: #0d0d0d; /* Fundo Escuro Principal */
-            --main-text: #ffffff;
-            --light-text: #a0a0a0; /* Cinza suave para descrições */
-            --accent-color: #007bff; /* AZUL (Cor de Credibilidade e Ação) */
-            --sidebar-bg: #1a1a1a; /* Fundo da Sidebar Ligeiramente mais claro */
-            --active-item: #2a2a2a; /* Fundo do item selecionado */
+            --bg-color: #FFFFFF; /* Fundo Branco Limpo */
+            --main-text: #212529; /* Texto Principal Escuro */
+            --light-text: #6c757d; /* Cinza para Subtítulos */
+            --accent-color: #DAA520; /* Dourado/Amarelo (Acento para JB) */
+            --action-color: #007bff; /* Azul de Ação/Botões */
+            --sidebar-bg: #f8f9fa; /* Fundo Cinza Claro para Sidebar */
+            --border-color: #e9ecef; /* Borda Suave */
         }
 
         body {
@@ -23,177 +24,192 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Estrutura Principal: Conteúdo e Sidebar */
+        /* Top Bar e Estrutura Principal */
+        .top-bar {
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar h1 {
+            font-size: 1.2em;
+            color: var(--main-text);
+            margin: 0;
+            font-weight: 600;
+        }
+        .top-bar button {
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+
+        /* Estrutura Principal: VÍDEO E CONTEÚDO OCUPANDO A LARGURA MÁXIMA */
         .platform-container {
             display: flex;
-            flex-direction: column; 
-            max-width: 1400px; 
+            flex-direction: column; /* Padrão Mobile */
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* 1. Área do Conteúdo Principal (Vídeo e Descrição) */
+        /* 1. Área do Conteúdo Principal (VÍDEO) */
         .main-content {
             flex: 1;
-            padding: 20px;
-        }
-        
-        /* Título do Curso (TOPO) */
-        .course-header {
-            font-size: 1.1em;
-            color: var(--accent-color);
-            padding: 0 20px 10px 20px;
-            font-weight: bold;
-            text-transform: uppercase;
+            padding: 0; /* Remove padding lateral no mobile para full-width */
+            margin-bottom: 20px;
         }
 
+        /* OTIMIZAÇÃO: Aumenta o tamanho do Player de Vídeo */
         .video-player-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; 
+            padding-top: 56.25%; /* 16:9 - Ocupa a largura total */
             background-color: black;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        #video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
         }
 
-        /* Detalhes da Aula: Tipografia Suave */
+        /* Detalhes da Aula */
+        .lesson-details {
+            padding: 20px; /* Adiciona padding para o texto */
+        }
         .lesson-details h1 {
             font-size: 2em;
-            margin-bottom: 5px;
             color: var(--main-text);
-            font-weight: 600;
+            font-weight: bold;
         }
         .lesson-details .module-title {
             color: var(--light-text);
             font-size: 1em;
             margin-bottom: 15px;
-            font-weight: 300;
         }
         .lesson-details p {
             color: var(--light-text);
             line-height: 1.6;
             font-size: 0.95em;
-            font-weight: 300;
         }
-
+        
         /* Botões de Navegação */
         .navigation-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 30px;
             padding-top: 15px;
-            border-top: 1px solid var(--sidebar-bg);
+            border-top: 1px solid var(--border-color);
         }
         .navigation-buttons button {
-            background-color: var(--accent-color); /* Botões Azuis de Ação */
-            color: var(--main-text);
+            background-color: var(--action-color);
+            color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        .navigation-buttons button:hover:not(:disabled) {
-            background-color: #0056b3;
-        }
-        .navigation-buttons button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background-color: #444;
+            font-weight: bold;
         }
 
-        /* 2. Sidebar (Lista de Aulas) - Fundo de Contraste */
+        /* 2. Sidebar (Lista de Aulas) - Visível e Clean */
         .sidebar {
-            width: 100%; 
+            width: 100%; /* Padrão Mobile: Ocupa a largura toda */
             background-color: var(--sidebar-bg);
-            padding: 20px 0;
-            height: auto;
-            overflow-y: hidden; 
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            border-top: 1px solid var(--sidebar-bg);
+            padding: 20px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--border-color);
         }
         .sidebar h2 {
             font-size: 1.3em;
-            padding: 0 20px 15px 20px;
-            margin: 0;
-            border-bottom: 1px solid var(--active-item);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color); /* Linha Dourada de Destaque */
+            margin-bottom: 15px;
         }
         .module-list {
             list-style: none;
-            padding: 0 0 10px 0;
+            padding: 0;
             margin: 0;
         }
         .module-list h3 {
             font-size: 1.1em;
-            padding: 15px 20px 5px 20px;
+            padding: 15px 0 5px 0;
             color: var(--main-text);
             margin: 0;
-            font-weight: 600;
+            font-weight: bold;
         }
         .lesson-item {
-            padding: 12px 20px;
+            padding: 10px 0;
             cursor: pointer;
             font-size: 0.95em;
-            border-bottom: 1px dotted var(--active-item);
+            border-bottom: 1px dotted var(--border-color);
             transition: background-color 0.2s;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .lesson-item:hover {
-            background-color: #2a2a2a;
-        }
         .lesson-item.active {
-            background-color: var(--active-item);
-            color: var(--accent-color);
+            background-color: #e9ecef; /* Fundo cinza claro para ativo */
+            color: var(--action-color);
             font-weight: bold;
-            border-left: 4px solid var(--accent-color);
+            border-left: 4px solid var(--action-color);
             padding-left: 16px;
+            margin-left: -16px;
         }
-        
         .lesson-item .status-icon {
             font-size: 0.8em;
             color: var(--light-text);
         }
         .lesson-item.active .status-icon {
-            color: var(--accent-color);
+            color: var(--action-color);
         }
 
         /* Responsividade: Layout de Duas Colunas para Desktop/Tablet */
-        @media (min-width: 900px) {
+        @media (min-width: 1024px) {
             .platform-container {
                 flex-direction: row; 
             }
+            .main-content {
+                flex: 2; /* Main content ocupa 2/3 da tela */
+                padding: 20px 20px 20px 0; /* Remove padding da esquerda */
+            }
             .sidebar {
-                width: 350px; 
+                width: 350px; /* Largura fixa da sidebar */
                 min-width: 350px;
                 height: 100vh;
                 overflow-y: auto;
                 order: 2; 
-                border-left: 1px solid var(--active-item);
-            }
-            .main-content {
-                order: 1; 
+                padding: 20px;
+                border-left: 1px solid var(--border-color);
+                box-shadow: none;
             }
         }
     </style>
 </head>
 <body>
+    
+    <div class="top-bar">
+        <h1>JB JIDOUSHA CURSOS</h1>
+        <button id="login-logout-btn">Entrar / Sair</button>
+    </div>
 
     <div class="platform-container">
-        
-        <div class="course-header">JB JIDOUSHA CURSOS</div>
-        
+
         <div class="main-content">
             
             <div class="video-player-container">
                 <iframe id="video-player"
-                    src="https://www.youtube.com/watch?v=hQkDRbYTzlw" 
+                    src="https://www.youtube.com/watch?v=isW_0Kk8Jlw1" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
@@ -204,7 +220,7 @@
                 <h1 id="current-lesson-title">Aula 1: Comece por aqui!</h1>
                 
                 <p id="current-lesson-description">
-                    Bem-vindo à Plataforma JB Jidousha Cursos! Nesta aula, vamos explicar o método e como você pode ter o melhor aproveitamento do conteúdo.
+                    Bem-vindo à Plataforma JB Jidousha Cursos! O método testado para sua certificação no Japão. Assista as aulas na sequência!
                 </p>
 
                 <div class="navigation-buttons">
