@@ -6,14 +6,14 @@
     <title>Plataforma de Cursos | JB Jidousha</title>
     
     <style>
-        /* Paleta de Cores Estilo Netflix/Streaming Otimizada */
+        /* Paleta de Cores Estilo Educacional Premium */
         :root {
-            --bg-color: #0d0d0d; /* Fundo mais escuro */
+            --bg-color: #0d0d0d; /* Fundo Escuro Principal */
             --main-text: #ffffff;
             --light-text: #a0a0a0; /* Cinza suave para descrições */
-            --accent-color: #DAA520; /* Dourado/Amarelo (Acento) */
+            --accent-color: #007bff; /* AZUL (Cor de Credibilidade e Ação) */
             --sidebar-bg: #1a1a1a; /* Fundo da Sidebar Ligeiramente mais claro */
-            --active-item: #333333; /* Fundo do item selecionado */
+            --active-item: #2a2a2a; /* Fundo do item selecionado */
         }
 
         body {
@@ -23,13 +23,13 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased; /* Suaviza fontes */
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Estrutura Principal: Conteúdo e Sidebar */
         .platform-container {
             display: flex;
-            flex-direction: column; /* Padrão Mobile: Coluna */
+            flex-direction: column; 
             max-width: 1400px; 
             margin: 0 auto;
         }
@@ -39,11 +39,20 @@
             flex: 1;
             padding: 20px;
         }
+        
+        /* Título do Curso (TOPO) */
+        .course-header {
+            font-size: 1.1em;
+            color: var(--accent-color);
+            padding: 0 20px 10px 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
 
         .video-player-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* Proporção 16:9 para o vídeo */
+            padding-top: 56.25%; 
             background-color: black;
             border-radius: 4px;
             overflow: hidden;
@@ -53,7 +62,7 @@
 
         /* Detalhes da Aula: Tipografia Suave */
         .lesson-details h1 {
-            font-size: 2em; /* Ligeiramente menor */
+            font-size: 2em;
             margin-bottom: 5px;
             color: var(--main-text);
             font-weight: 600;
@@ -62,7 +71,7 @@
             color: var(--light-text);
             font-size: 1em;
             margin-bottom: 15px;
-            font-weight: 300; /* Mais leve */
+            font-weight: 300;
         }
         .lesson-details p {
             color: var(--light-text);
@@ -77,30 +86,36 @@
             justify-content: space-between;
             margin-top: 30px;
             padding-top: 15px;
-            border-top: 1px solid var(--active-item);
+            border-top: 1px solid var(--sidebar-bg);
         }
         .navigation-buttons button {
-            background-color: var(--active-item);
+            background-color: var(--accent-color); /* Botões Azuis de Ação */
             color: var(--main-text);
             border: none;
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
+            transition: background-color 0.3s;
         }
         .navigation-buttons button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        .navigation-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
             background-color: #444;
         }
 
         /* 2. Sidebar (Lista de Aulas) - Fundo de Contraste */
         .sidebar {
-            width: 100%; /* Padrão Mobile: Ocupa a largura toda */
+            width: 100%; 
             background-color: var(--sidebar-bg);
             padding: 20px 0;
             height: auto;
             overflow-y: hidden; 
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            border-top: 1px solid var(--active-item);
+            border-top: 1px solid var(--sidebar-bg);
         }
         .sidebar h2 {
             font-size: 1.3em;
@@ -140,6 +155,14 @@
             border-left: 4px solid var(--accent-color);
             padding-left: 16px;
         }
+        
+        .lesson-item .status-icon {
+            font-size: 0.8em;
+            color: var(--light-text);
+        }
+        .lesson-item.active .status-icon {
+            color: var(--accent-color);
+        }
 
         /* Responsividade: Layout de Duas Colunas para Desktop/Tablet */
         @media (min-width: 900px) {
@@ -147,11 +170,11 @@
                 flex-direction: row; 
             }
             .sidebar {
-                width: 350px; /* Largura fixa da sidebar */
+                width: 350px; 
                 min-width: 350px;
-                height: 100vh; /* Mantém a altura total para o visual de plataforma */
+                height: 100vh;
                 overflow-y: auto;
-                order: 2; /* Move a sidebar para a direita */
+                order: 2; 
                 border-left: 1px solid var(--active-item);
             }
             .main-content {
@@ -163,12 +186,14 @@
 <body>
 
     <div class="platform-container">
-
+        
+        <div class="course-header">JB JIDOUSHA CURSOS</div>
+        
         <div class="main-content">
             
             <div class="video-player-container">
                 <iframe id="video-player"
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" 
+                    src="https://www.youtube.com/watch?v=hQkDRbYTzlw" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
