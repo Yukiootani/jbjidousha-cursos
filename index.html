@@ -6,14 +6,14 @@
     <title>Plataforma de Cursos | JB Jidousha</title>
     
     <style>
-        /* Paleta de Cores Estilo Premium (Contraste Suave) */
+        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
         :root {
-            --bg-color: #f5f5f5; /* Fundo Principal Cinza Suave */
-            --content-bg: #ffffff; /* Fundo Branco da Área de Vídeo/Detalhes */
-            --main-text: #212529; /* Texto Principal Escuro */
+            --bg-color: #f7f7f7; /* Fundo Principal Branco Suave */
+            --content-bg: #FFFFFF; /* Fundo Branco Puro para Blocos */
+            --main-text: #333333; /* Texto Principal Preto */
             --light-text: #6c757d; /* Cinza para Subtítulos */
-            --accent-color: #DAA520; /* DOURADO/AMARELO (Acento para JB) */
-            --action-color: #007bff; /* AZUL DE AÇÃO/Botões */
+            --accent-color: #DAA520; /* DOURADO Elegante */
+            --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; /* Borda Suave */
         }
 
@@ -29,33 +29,27 @@
 
         /* Top Bar - Header Superior */
         .top-bar {
-            background-color: white;
+            background-color: var(--content-bg);
             padding: 15px 20px;
-            border-bottom: 2px solid var(--accent-color); /* Linha DOURADA de destaque */
+            border-bottom: 3px solid var(--accent-color); /* Linha DOURADA de destaque */
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .top-bar h1 {
-            font-size: 1.2em;
+            font-size: 1.3em;
             color: var(--main-text);
             margin: 0;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-weight: 700;
         }
         .top-bar button {
-            background-color: var(--action-color);
+            background-color: var(--action-color); /* Botão PRETO */
             color: white;
             border: none;
             padding: 8px 15px;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
             font-weight: bold;
-            transition: background-color 0.3s;
         }
-        .top-bar button:hover { background-color: #0056b3; }
-
 
         /* Estrutura Principal */
         .platform-container {
@@ -68,17 +62,17 @@
         /* 1. Área do Conteúdo Principal (VÍDEO) */
         .main-content {
             flex: 1;
-            padding: 0; 
-            margin-bottom: 20px;
-            background-color: var(--content-bg); /* Fundo Branco da Área de Vídeo/Texto */
+            padding: 20px;
+            background-color: var(--content-bg);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* OTIMIZAÇÃO: Player de Vídeo */
+        /* Player de Vídeo */
         .video-player-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; 
-            background-color: black;
+            padding-top: 56.25%;
+            background-color: #000; /* Fundo Preto para o player */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
         #video-player {
@@ -90,46 +84,15 @@
             border: none;
         }
 
-        /* Detalhes da Aula: Tipografia e Espaçamento */
-        .lesson-details {
-            padding: 25px; /* Mais espaçamento para elegância */
-        }
-        .lesson-details h1 {
-            font-size: 2.2em; /* Fonte maior para impacto */
-            margin-bottom: 5px;
-            color: var(--main-text);
-            font-weight: 700;
-        }
-        .lesson-details .module-title {
-            color: var(--light-text);
-            font-size: 1.05em;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        .lesson-details p {
-            color: var(--light-text);
-            line-height: 1.6;
-            font-size: 0.95em;
-        }
-        
-        /* Botões de Navegação */
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .navigation-buttons button {
-            background-color: var(--action-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
+        /* Detalhes da Aula e Botões (Tipografia) */
+        .lesson-details h1 { font-size: 2em; font-weight: 700; }
+        .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
+        .navigation-buttons { border-top: 1px solid var(--border-color); }
+        .navigation-buttons button { background-color: var(--action-color); }
+        .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
 
-        /* 2. Sidebar (Lista de Aulas) - Estrutura Limpa */
+
+        /* 2. Sidebar (Lista de Aulas) - Estrutura Fixa */
         .sidebar {
             width: 100%; 
             background-color: var(--content-bg);
@@ -137,69 +100,77 @@
             border-top: 1px solid var(--border-color);
         }
         .sidebar h2 {
-            font-size: 1.3em;
             padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent-color); /* Linha Dourada de Destaque */
-            margin-bottom: 15px;
-            color: var(--main-text);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .module-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        /* Módulos */
-        .module-list h3 {
-            font-size: 1.1em;
-            padding: 15px 0 5px 0;
-            color: var(--main-text);
-            margin: 0;
+            border-bottom: 2px solid var(--accent-color); /* Linha DOURADA */
+            color: var(--primary-text);
             font-weight: bold;
-            /* NOVO: Linha discreta para separar módulos */
-            border-top: 1px solid var(--border-color);
         }
-        /* Aulas */
-        .lesson-item {
-            padding: 10px 0;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: background-color 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .lesson-item:hover {
-            background-color: #f0f0f0; /* Fundo cinza claro no hover */
-        }
+        .module-list { list-style: none; padding: 0; margin: 0; }
+        .module-list h3 { border-top: 1px solid var(--border-color); }
         .lesson-item.active {
-            background-color: #e9ecef; /* Fundo cinza claro para ativo */
-            color: var(--action-color);
-            font-weight: bold;
-            border-left: 4px solid var(--action-color);
-            padding-left: 16px;
-            margin-left: -16px;
+            background-color: var(--sidebar-bg); /* Fundo sutil */
+            color: var(--action-color); /* Texto PRETO de ação */
+            border-left: 4px solid var(--accent-color); /* Destaque DOURADO */
+        }
+        .lesson-item:hover { background-color: #f0f0f0; }
+
+
+        /* 3. CARROSSÉIS INTERATIVOS (Nova Seção) */
+        .carousel-section {
+            background-color: var(--bg-color);
+            padding: 30px 0;
+            margin-top: 20px;
+        }
+        .carousel-title {
+            font-size: 1.5em;
+            color: var(--main-text);
+            margin: 0 20px 20px 20px;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+            padding-bottom: 5px;
         }
 
-        /* Responsividade: Desktop/Tablet */
+        /* Contêiner de Rolagem Horizontal (O 'Roleta' / 'Swipe') */
+        .horizontal-scroll-container {
+            display: flex;
+            overflow-x: auto; /* Permite arrastar horizontalmente */
+            -webkit-overflow-scrolling: touch; /* Melhora a rolagem em iOS */
+            padding: 0 20px 20px 20px;
+            gap: 20px;
+            scroll-snap-type: x mandatory; /* Ajuda a fixar os itens */
+        }
+        /* Estilo para a barra de rolagem (opcional, para ser mais discreta) */
+        .horizontal-scroll-container::-webkit-scrollbar { height: 6px; }
+        .horizontal-scroll-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+        .horizontal-scroll-container::-webkit-scrollbar-track { background: var(--bg-color); }
+
+
+        .carousel-item {
+            flex: 0 0 auto; /* Impede que o item se estique */
+            width: 300px; /* Largura padrão dos itens */
+            height: 200px;
+            background-color: var(--content-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            scroll-snap-align: start;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .carousel-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .item-title { font-weight: bold; color: var(--action-color); }
+
+        /* Responsividade para Duas Colunas (Desktop) */
         @media (min-width: 1024px) {
-            .platform-container {
-                flex-direction: row; 
-            }
-            .main-content {
-                flex: 2; 
-                padding: 20px 20px 20px 0; 
-            }
+            .platform-container { flex-direction: row; }
+            .main-content { flex: 2; padding: 20px 20px 20px 0; }
             .sidebar {
-                width: 350px; 
-                min-width: 350px;
-                height: 100vh;
-                overflow-y: auto;
-                order: 2; 
-                padding: 20px;
-                border-left: 1px solid var(--border-color);
-                border-top: none; /* Remove borda de cima no desktop */
+                width: 350px; min-width: 350px; height: 100vh; overflow-y: auto;
+                order: 2; padding: 20px; border-left: 1px solid var(--border-color);
+                border-top: none;
             }
         }
     </style>
@@ -217,18 +188,18 @@
             
             <div class="video-player-container">
                 <iframe id="video-player"
-                    src="https://www.youtube.com/watch?v=isW_0Kk8Jlw3" 
+                    src="https://www.youtube.com/watch?v=isW_0Kk8Jlw5" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
             </div>
 
             <div class="lesson-details">
-                <p class="module-title" id="current-module-title">Módulo 1: Boas-vindas e Introdução</p>
-                <h1 id="current-lesson-title">Aula 1: Comece por aqui!</h1>
+                <p class="module-title" id="current-module-title">Módulo 1: Higienização e Produtos</p>
+                <h1 id="current-lesson-title">Aula 1: Segurança e Produtos Químicos</h1>
                 
                 <p id="current-lesson-description">
-                    Bem-vindo à Plataforma JB Jidousha Cursos! O método testado para sua certificação no Japão. Assista as aulas na sequência!
+                    Este é o início do seu treinamento profissional em Higienização Automotiva. Aprenda sobre EPIs, diluição correta dos produtos e os riscos ambientais.
                 </p>
 
                 <div class="navigation-buttons">
@@ -242,18 +213,63 @@
             <h2>Conteúdo do Curso</h2>
             <ul id="course-outline" class="module-list">
                 <li id="module-1">
-                    <h3>Módulo 1: Fundamentos (Exemplo)</h3>
+                    <h3>Módulo 1: Fundamentos</h3>
                     <div class="lesson-item active" data-lesson-id="L01" data-video-url="dQw4w9WgXcQ">
-                        <span>1.1. Introdução ao Curso</span>
+                        <span>1.1. Segurança e Produtos</span>
                         <span class="status-icon">▶</span>
                     </div>
                     <div class="lesson-item" data-lesson-id="L02" data-video-url="b66r_M-o72g">
-                        <span>1.2. Estrutura do Método</span>
+                        <span>1.2. Limpeza de Painel e Forro</span>
                         <span class="status-icon">🔒</span>
                     </div>
                 </li>
             </ul>
         </div>
+    </div>
+
+    <div class="carousel-section">
+        
+        <h2 class="carousel-title">⚙️ Produtos e Ferramentas Secretas</h2>
+        <div class="horizontal-scroll-container">
+            <div class="carousel-item">
+                <div class="item-title">Guia Rápido de Diluição (PDF)</div>
+                <p>Acesse o PDF com a tabela de diluição profissional para 15 produtos.</p>
+                <button class="navigation-buttons button">Abrir Arquivo</button>
+            </div>
+            
+            <div class="carousel-item">
+                <div class="item-title">Ferramenta Secreta do Mercado</div>
+                <p>Vídeo demonstrativo de 5 minutos sobre a Extratora X-300.</p>
+                <button class="navigation-buttons button">Assistir Vídeo</button>
+            </div>
+            
+            <div class="carousel-item">
+                <div class="item-title">Rendimento por Serviço (Planilha)</div>
+                <p>Planilha Excel para calcular seu lucro em 3 tipos de serviço.</p>
+                <button class="navigation-buttons button">Baixar Planilha</button>
+            </div>
+            
+            <div class="carousel-item">
+                <div class="item-title">Ideias de Negócios</div>
+                <p>Abra o módulo para ver ideias e estratégias de marketing.</p>
+                <button class="navigation-buttons button">Acessar Ideias</button>
+            </div>
+        </div>
+        
+        <h2 class="carousel-title" style="margin-top: 30px;">❓ Área de Dúvidas e Fórum</h2>
+        <div class="horizontal-scroll-container">
+             <div class="carousel-item">
+                <div class="item-title">Fórum da Aula 1</div>
+                <p>Pergunte sobre EPIs e segurança.</p>
+                <button class="navigation-buttons button">Acessar Fórum</button>
+            </div>
+             <div class="carousel-item">
+                <div class="item-title">Aulas Mais Vistas</div>
+                <p>Veja o ranking das aulas mais importantes.</p>
+                <button class="navigation-buttons button">Ver Ranking</button>
+            </div>
+        </div>
+        
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -275,7 +291,28 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
       const auth = firebase.auth(); 
-      // A lógica de carregamento de aulas e troca de vídeo virá aqui
+      // Lógica de carregamento de aulas e troca de vídeo virá aqui
+      
+      // Funções para controle do Player serão adicionadas aqui:
+      
+      // 1. LÓGICA DE TROCA DE VÍDEO (A ser implementada)
+      document.querySelectorAll('.lesson-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const videoId = item.getAttribute('data-video-url');
+            if (videoId) {
+                // Aqui entraria a lógica de checagem de LOGIN antes de trocar o vídeo
+                // window.location.href = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                console.log('Trocar vídeo para:', videoId);
+            }
+        });
+      });
+      
+      // 2. LÓGICA DE LOGIN (A ser implementada)
+      document.getElementById('login-logout-btn').addEventListener('click', () => {
+          // Por enquanto, apenas um alerta
+          alert('Função de Login/Logout será implementada em seguida!');
+      });
+      
     </script>
 </body>
 </html>
