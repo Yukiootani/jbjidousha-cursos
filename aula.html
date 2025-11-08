@@ -16,7 +16,6 @@
             --accent-color: #DAA520; 
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
-            --success-color: #28a745; /* Verde para "Concluído" */
         }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
@@ -86,30 +85,6 @@
             cursor: not-allowed; 
         }
         
-        /* Botão de Concluir Aula (RE-ADICIONADO) */
-        .progress-controls {
-            margin-top: 20px;
-            padding-bottom: 20px;
-            text-align: center;
-        }
-        #complete-lesson-btn {
-            background-color: var(--success-color); /* Verde */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #complete-lesson-btn:hover { background-color: #218838; }
-        #complete-lesson-btn.completed {
-            background-color: var(--light-text);
-            color: var(--main-text);
-            cursor: default;
-        }
-
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -140,10 +115,6 @@
             font-weight: bold;
         }
         .lesson-item:hover { background-color: #f0f0f0; }
-        
-        /* Ícone de Aula Concluída (RE-ADICIONADO) */
-        .lesson-item .status-icon.completed { color: var(--accent-color); }
-        .lesson-item.active .status-icon { color: var(--accent-color); }
         
         @media (min-width: 1024px) {
             .platform-container { flex-direction: row; }
@@ -179,10 +150,6 @@
                 <p class="module-title" id="current-module-title">Módulo...</p>
                 <h1 id="current-lesson-title">Carregando Aula...</h1>
                 <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
-
-                <div class="progress-controls">
-                    <button id="complete-lesson-btn">Marcar como Concluída</button>
-                </div>
 
                 <div class="navigation-buttons">
                     <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
@@ -240,12 +207,6 @@
           },
       };
       
-      // --- VARIÁVEIS GLOBAIS ---
-      let currentCourseId = null;
-      let currentLessonId = null;
-      let currentUser = null;
-      let userProgress = {}; 
-      
       // --- ELEMENTOS DO HTML ---
       const courseTitleEl = document.getElementById('course-title');
       const moduleListEl = document.getElementById('course-outline');
@@ -253,9 +214,7 @@
       const lessonTitleEl = document.getElementById('current-lesson-title');
       const moduleTitleEl = document.getElementById('current-module-title');
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
-      const completeLessonBtn = document.getElementById('complete-lesson-btn'); // Botão de progresso
       
-      // Botões de Navegação
       const prevLessonBtn = document.getElementById('prev-lesson-btn');
       const nextLessonBtn = document.getElementById('next-lesson-btn');
       
@@ -263,34 +222,27 @@
       let currentLessonIndex = -1;
 
       // 1. Proteção de Login
-      auth.onAuthStateChanged(async (user) => {
+      auth.onAuthStateChanged((user) => {
         if (!user) {
           window.location.href = 'login.html';
         } else {
-            currentUser = user; 
-            console.log("Usuário logado:", currentUser.uid);
-            await initializePage();
+            initializePage(user);
         }
       });
       
       // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
-      async function initializePage() {
+      function initializePage(user) {
           const urlParams = new URLSearchParams(window.location.search);
-          currentCourseId = urlParams.get('courseId') || "curso_higienizacao"; 
+          const courseId = urlParams.get('courseId') || "curso_higienizacao"; 
           
-          if (!currentCourseId || !coursesDB[currentCourseId]) {
+          if (!courseId || !coursesDB[courseId]) {
               alert("Erro: Curso não encontrado!");
               window.location.href = 'index.html';
               return;
           }
           
-          const course = coursesDB[currentCourseId];
+          const course = coursesDB[courseId];
           courseTitleEl.textContent = course.title;
-          
-          await loadUserProgress(currentUser.uid);
-          
-          moduleListEl.innerHTML = '';
-          flatLessonList = [];
           
           // Renderiza a Sidebar
           course.modules.forEach(module => {
@@ -300,22 +252,19 @@
               module.lessons.forEach(lesson => {
                   const lessonEl = document.createElement('div');
                   lessonEl.className = 'lesson-item';
-                  lessonEl.dataset.lessonId = lesson.id;
                   lessonEl.dataset.videoId = lesson.videoId;
                   lessonEl.dataset.title = lesson.title;
                   lessonEl.dataset.module = module.title;
                   lessonEl.dataset.description = lesson.description;
                   
-                  const isCompleted = userProgress[lesson.id];
-                  
                   lessonEl.innerHTML = `
                       <span>${lesson.title}</span>
-                      <span class="status-icon">${isCompleted ? '<i class="fas fa-check" style="color: var(--accent-color);"></i>' : '<i class="fas fa-play"></i>'}</span>
+                      <span class="status-icon"><i class="fas fa-play"></i></span>
                   `;
                   
                   lessonEl.addEventListener('click', () => loadLesson(lessonEl));
                   moduleEl.appendChild(lessonEl);
-                  flatLessonList.push(lessonEl); // Adiciona à lista plana
+                  flatLessonList.push(lessonEl); 
               });
               
               moduleListEl.appendChild(moduleEl);
@@ -326,106 +275,24 @@
               loadLesson(flatLessonList[0]);
           }
           
-          // Adiciona evento ao botão de Concluir
-          completeLessonBtn.addEventListener('click', markLessonAsCompleted);
-          
-          // Adiciona eventos aos botões de navegação
           prevLessonBtn.addEventListener('click', loadPreviousLesson);
           nextLessonBtn.addEventListener('click', loadNextLesson);
       }
 
-      // Carregar o Progresso do Aluno do Firestore
-      async function loadUserProgress(userId) {
-          if (!userId || !currentCourseId) return;
-          
-          const progressRef = db.collection('userProgress').doc(userId).collection(currentCourseId).doc('progress');
-          const doc = await progressRef.get();
-          
-          if (doc.exists) {
-              userProgress = doc.data().completedLessons || {};
-          } else {
-              userProgress = {};
-          }
-      }
-
-      // Checar status da aula carregada
-      function checkCurrentLessonStatus() {
-          if (userProgress[currentLessonId]) {
-              completeLessonBtn.disabled = true;
-              completeLessonBtn.textContent = "Concluída ✓";
-              completeLessonBtn.classList.add('completed');
-          } else {
-              completeLessonBtn.disabled = false;
-              completeLessonBtn.textContent = "Marcar como Concluída";
-              completeLessonBtn.classList.remove('completed');
-          }
-      }
-      
       // Função para Carregar a Aula
       function loadLesson(lessonElement) {
           document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
           lessonElement.classList.add('active');
           
-          currentLessonId = lessonElement.dataset.lessonId; 
-          currentLessonIndex = flatLessonList.indexOf(lessonElement); 
+          currentLessonIndex = flatLessonList.indexOf(lessonElement);
+          const videoId = lessonElement.dataset.videoId;
           
-          videoPlayer.src = `https://www.youtube.com/embed/${lessonElement.dataset.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = lessonElement.dataset.title;
           moduleTitleEl.textContent = lessonElement.dataset.module;
           lessonDescriptionEl.textContent = lessonElement.dataset.description;
           
-          checkCurrentLessonStatus();
-          updateNavigationButtons(); 
-      }
-      
-      // Função para Marcar Aula como Concluída (COM DEBUG DE ALERTA)
-      async function markLessonAsCompleted() {
-          
-          // DEBUG 1: O clique foi registado?
-          alert("DEBUG V7: Botão 'Concluída' clicado.");
-          
-          if (!currentUser) {
-              alert("DEBUG V7: ERRO! O 'currentUser' (ID do Aluno) está NULO. O login falhou ou o timing está errado.");
-              return;
-          }
-          if (!currentCourseId) {
-              alert("DEBUG V7: ERRO! 'currentCourseId' está NULO.");
-              return;
-          }
-          if (!currentLessonId) {
-              alert("DEBUG V7: ERRO! 'currentLessonId' está NULO.");
-              return;
-          }
-          
-          alert("DEBUG V7: Verificação passada. A salvar: Aluno: " + currentUser.uid + " Aula: " + currentLessonId);
-          
-          completeLessonBtn.disabled = true;
-          completeLessonBtn.textContent = "Salvando...";
-          
-          const progressRef = db.collection('userProgress').doc(currentUser.uid).collection(currentCourseId).doc('progress');
-          userProgress[currentLessonId] = true;
-
-          try {
-              await progressRef.set({
-                  completedLessons: userProgress
-              }, { merge: true });
-              
-              completeLessonBtn.textContent = "Concluída ✓";
-              completeLessonBtn.classList.add('completed');
-              const activeLessonEl = document.querySelector(`.lesson-item[data-lesson-id="${currentLessonId}"] .status-icon`);
-              if (activeLessonEl) {
-                  activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
-              }
-              alert("DEBUG V7: Progresso salvo no Firebase!");
-
-          } catch (error) {
-              alert("DEBUG V7: ERRO AO SALVAR! " + error.message);
-              
-              userProgress[currentLessonId] = false; 
-              completeLessonBtn.disabled = false; 
-              completeLessonBtn.textContent = "Marcar como Concluída";
-              completeLessonBtn.classList.remove('completed');
-          }
+          updateNavigationButtons();
       }
       
       // Funções de navegação
