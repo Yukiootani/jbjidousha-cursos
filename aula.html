@@ -203,7 +203,6 @@
       const auth = firebase.auth(); 
       
       // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
-      // (Vamos manter isto por enquanto, até o Admin estar pronto)
       const coursesDB = {
           "curso_higienizacao": {
               title: "Curso de Higienização Profissional",
@@ -229,7 +228,7 @@
       let currentCourseId = null;
       let currentLessonId = null;
       let currentUser = null;
-      let userProgress = {}; // Onde guardaremos o progresso do aluno
+      let userProgress = {}; 
       
       // --- ELEMENTOS DO HTML ---
       const courseTitleEl = document.getElementById('course-title');
@@ -240,19 +239,24 @@
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
       const completeLessonBtn = document.getElementById('complete-lesson-btn');
 
-      // 1. Proteção de Login
-      auth.onAuthStateChanged((user) => {
+      // --- CORREÇÃO DE LÓGICA (TUDO DENTRO DO AUTH) ---
+
+      auth.onAuthStateChanged(async (user) => {
         if (!user) {
+          // 1. NÃO ESTÁ LOGADO
           window.location.href = 'login.html';
         } else {
-            currentUser = user; 
-            console.log("Usuário logado:", currentUser.uid);
-            loadUserProgress(currentUser.uid); // Carrega o progresso do aluno
+          // 2. ESTÁ LOGADO
+          currentUser = user; 
+          console.log("Usuário logado:", currentUser.uid);
+          
+          // 3. INICIA A LÓGICA DA PÁGINA (SÓ DEPOIS DE LOGAR)
+          await initializePage();
         }
       });
       
-      // 2. Carregar o curso
-      document.addEventListener('DOMContentLoaded', () => {
+      // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+      async function initializePage() {
           const urlParams = new URLSearchParams(window.location.search);
           currentCourseId = urlParams.get('courseId'); 
           
@@ -265,7 +269,10 @@
           const course = coursesDB[currentCourseId];
           courseTitleEl.textContent = course.title;
           
-          // 3. Renderizar a Sidebar de Módulos
+          // Carrega o progresso ANTES de renderizar a sidebar
+          await loadUserProgress(currentUser.uid);
+          
+          // Renderiza a Sidebar
           course.modules.forEach(module => {
               const moduleEl = document.createElement('li');
               moduleEl.innerHTML = `<h3>${module.title}</h3>`;
@@ -273,15 +280,18 @@
               module.lessons.forEach(lesson => {
                   const lessonEl = document.createElement('div');
                   lessonEl.className = 'lesson-item';
-                  lessonEl.dataset.lessonId = lesson.id; // ID Único da Aula (L01, L02)
+                  lessonEl.dataset.lessonId = lesson.id;
                   lessonEl.dataset.videoId = lesson.videoId;
                   lessonEl.dataset.title = lesson.title;
                   lessonEl.dataset.module = module.title;
                   lessonEl.dataset.description = lesson.description;
                   
+                  // Verifica se já está concluída
+                  const isCompleted = userProgress[lesson.id];
+                  
                   lessonEl.innerHTML = `
                       <span>${lesson.title}</span>
-                      <span class="status-icon"><i class="fas fa-play"></i></span>
+                      <span class="status-icon">${isCompleted ? '<i class="fas fa-check" style="color: var(--accent-color);"></i>' : '<i class="fas fa-play"></i>'}</span>
                   `;
                   
                   lessonEl.addEventListener('click', () => loadLesson(lessonEl));
@@ -291,17 +301,17 @@
               moduleListEl.appendChild(moduleEl);
           });
           
-          // 4. Carregar a primeira aula por padrão
+          // Carrega a primeira aula por padrão
           const firstLesson = document.querySelector('.lesson-item');
           if (firstLesson) {
               loadLesson(firstLesson);
           }
           
-          // 5. Adicionar evento ao botão de Concluir
+          // Adiciona evento ao botão de Concluir
           completeLessonBtn.addEventListener('click', markLessonAsCompleted);
-      });
+      }
 
-      // 6. NOVO: Carregar o Progresso do Aluno do Firestore
+      // Carregar o Progresso do Aluno do Firestore
       async function loadUserProgress(userId) {
           if (!userId || !currentCourseId) return;
           
@@ -313,40 +323,28 @@
           } else {
               userProgress = {};
           }
-          
-          // Atualiza os ícones na sidebar
-          updateSidebarIcons();
-          // Verifica o status da aula atual
-          checkCurrentLessonStatus();
       }
 
-      // 7. NOVO: Atualizar ícones da sidebar
-      function updateSidebarIcons() {
-          document.querySelectorAll('.lesson-item').forEach(el => {
-              const lessonId = el.dataset.lessonId;
-              if (userProgress[lessonId]) {
-                  el.querySelector('.status-icon').innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
-              }
-          });
-      }
-
-      // 8. NOVO: Checar status da aula carregada
+      // Checar status da aula carregada
       function checkCurrentLessonStatus() {
           if (userProgress[currentLessonId]) {
               completeLessonBtn.disabled = true;
               completeLessonBtn.textContent = "Concluída ✓";
+              completeLessonBtn.classList.add('completed');
+V
           } else {
               completeLessonBtn.disabled = false;
               completeLessonBtn.textContent = "Marcar como Concluída";
+              completeLessonBtn.classList.remove('completed');
           }
       }
       
-      // 9. Função para Carregar a Aula
+      // Função para Carregar a Aula
       function loadLesson(lessonElement) {
           document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
           lessonElement.classList.add('active');
           
-          currentLessonId = lessonElement.dataset.lessonId; // Salva o ID da aula atual
+          currentLessonId = lessonElement.dataset.lessonId; 
           
           videoPlayer.src = `https://www.youtube.com/embed/${lessonElement.dataset.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = lessonElement.dataset.title;
@@ -357,18 +355,13 @@
           checkCurrentLessonStatus();
       }
       
-      // 10. ATUALIZADO: Função para Marcar Aula como Concluída (Salvando no Firebase)
+      // Função para Marcar Aula como Concluída (Salvando no Firebase)
       async function markLessonAsCompleted() {
-          if (!currentUser || !currentCourseId || !currentLessonId) {
-              alert("Erro: Não foi possível salvar o progresso. (Usuário ou Aula não encontrados)");
-              return;
-          }
+          // A verificação do 'currentUser' já foi feita pelo 'onAuthStateChanged'
           
-          // Desativa o botão (Feedback Visual Imediato)
           completeLessonBtn.disabled = true;
           completeLessonBtn.textContent = "Salvando...";
           
-          // Onde vamos salvar: /userProgress/{userId}/{courseId}/progress
           const progressRef = db.collection('userProgress').doc(currentUser.uid).collection(currentCourseId).doc('progress');
 
           // Atualiza o objeto de progresso local
@@ -376,13 +369,13 @@
 
           try {
               // Salva o objeto inteiro no Firestore
-              // 'set' com 'merge: true' garante que não apagamos outras aulas concluídas
               await progressRef.set({
                   completedLessons: userProgress
               }, { merge: true });
               
               // Feedback Visual Final
               completeLessonBtn.textContent = "Concluída ✓";
+              completeLessonBtn.classList.add('completed');
               const activeLessonEl = document.querySelector(`.lesson-item[data-lesson-id="${currentLessonId}"] .status-icon`);
               if (activeLessonEl) {
                   activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
@@ -391,9 +384,13 @@
 
           } catch (error) {
               console.error("Erro ao salvar progresso:", error);
-              alert("Erro ao salvar seu progresso. Tente novamente.");
-              completeLessonBtn.disabled = false; // Permite tentar de novo
+              alert("Erro ao salvar seu progresso. Verifique sua conexão e tente novamente.");
+              
+              // Reverte o botão se o salvamento falhar
+              userProgress[currentLessonId] = false; // Remove do progresso local
+              completeLessonBtn.disabled = false; 
               completeLessonBtn.textContent = "Marcar como Concluída";
+              completeLessonBtn.classList.remove('completed');
           }
       }
       
