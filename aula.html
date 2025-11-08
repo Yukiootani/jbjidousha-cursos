@@ -16,6 +16,7 @@
             --accent-color: #DAA520; 
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
+            --success-color: #28a745; /* Verde para "Concluído" */
         }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
@@ -68,6 +69,31 @@
         .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
         .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
         
+        /* NOVO: Botão de Concluir Aula */
+        .progress-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #complete-lesson-btn {
+            background-color: var(--success-color); /* Verde */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #complete-lesson-btn:hover { background-color: #218838; }
+        #complete-lesson-btn.completed {
+            background-color: var(--light-text);
+            color: var(--main-text);
+            cursor: default;
+        }
+
+
+        /* 2. Sidebar (Lista de Aulas) */
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -98,7 +124,9 @@
             font-weight: bold;
         }
         .lesson-item:hover { background-color: #f0f0f0; }
-        .lesson-item .status-icon { color: var(--light-text); }
+        
+        /* NOVO: Ícone de Aula Concluída (Dourado) */
+        .lesson-item .status-icon.completed { color: var(--accent-color); }
         .lesson-item.active .status-icon { color: var(--accent-color); }
         
         @media (min-width: 1024px) {
@@ -134,10 +162,11 @@
             <div class="lesson-details">
                 <p class="module-title" id="current-module-title">Módulo...</p>
                 <h1 id="current-lesson-title">Carregando Aula...</h1>
-                
-                <p id="current-lesson-description">
-                    Selecione uma aula na lista ao lado para começar.
-                </p>
+                <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
+
+                <div class="progress-controls">
+                    <button id="complete-lesson-btn">Marcar como Concluída</button>
+                </div>
 
                 <div class="navigation-buttons">
                     <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
@@ -193,8 +222,12 @@
                   }
               ]
           },
-          // Outros cursos viriam aqui
       };
+      
+      // --- VARIÁVEIS GLOBAIS ---
+      let currentCourseId = null;
+      let currentLessonId = null;
+      let currentUser = null;
       
       // --- LÓGICA DE CARREGAMENTO DA PÁGINA ---
       const courseTitleEl = document.getElementById('course-title');
@@ -203,26 +236,30 @@
       const lessonTitleEl = document.getElementById('current-lesson-title');
       const moduleTitleEl = document.getElementById('current-module-title');
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
+      const completeLessonBtn = document.getElementById('complete-lesson-btn');
 
       // 1. Proteção de Login
       auth.onAuthStateChanged((user) => {
         if (!user) {
           window.location.href = 'login.html';
+        } else {
+            currentUser = user; // Salva o usuário logado
+            console.log("Usuário logado:", currentUser.uid);
         }
       });
       
       // 2. Carregar o curso
       document.addEventListener('DOMContentLoaded', () => {
           const urlParams = new URLSearchParams(window.location.search);
-          const courseId = urlParams.get('courseId');
+          currentCourseId = urlParams.get('courseId'); // Salva o ID do curso atual
           
-          if (!courseId || !coursesDB[courseId]) {
+          if (!currentCourseId || !coursesDB[currentCourseId]) {
               alert("Erro: Curso não encontrado!");
               window.location.href = 'index.html';
               return;
           }
           
-          const course = coursesDB[courseId];
+          const course = coursesDB[currentCourseId];
           courseTitleEl.textContent = course.title;
           
           // 3. Renderizar a Sidebar de Módulos
@@ -233,6 +270,7 @@
               module.lessons.forEach(lesson => {
                   const lessonEl = document.createElement('div');
                   lessonEl.className = 'lesson-item';
+                  lessonEl.dataset.lessonId = lesson.id; // ID Único da Aula (L01, L02)
                   lessonEl.dataset.videoId = lesson.videoId;
                   lessonEl.dataset.title = lesson.title;
                   lessonEl.dataset.module = module.title;
@@ -243,9 +281,7 @@
                       <span class="status-icon"><i class="fas fa-play"></i></span>
                   `;
                   
-                  // Adiciona o Event Listener para trocar o vídeo
                   lessonEl.addEventListener('click', () => loadLesson(lessonEl));
-                  
                   moduleEl.appendChild(lessonEl);
               });
               
@@ -257,27 +293,59 @@
           if (firstLesson) {
               loadLesson(firstLesson);
           }
+          
+          // 5. Adicionar evento ao botão de Concluir
+          completeLessonBtn.addEventListener('click', markLessonAsCompleted);
       });
       
-      // 5. Função para Carregar a Aula
+      // 6. Função para Carregar a Aula
       function loadLesson(lessonElement) {
-          // Remove a classe ativa de todos
           document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
-          
-          // Adiciona a classe ativa no clicado
           lessonElement.classList.add('active');
           
-          // Pega os dados do HTML (data- attributes)
           const videoId = lessonElement.dataset.videoId;
           const title = lessonElement.dataset.title;
           const moduleTitle = lessonElement.dataset.module;
           const description = lessonElement.dataset.description;
+          currentLessonId = lessonElement.dataset.lessonId; // Salva o ID da aula atual
           
-          // Atualiza o player e os detalhes
           videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = title;
           moduleTitleEl.textContent = moduleTitle;
           lessonDescriptionEl.textContent = description;
+          
+          // (Lógica de checagem de progresso virá aqui)
+          // Por enquanto, reseta o botão
+          completeLessonBtn.disabled = false;
+          completeLessonBtn.textContent = "Marcar como Concluída";
+      }
+      
+      // 7. NOVO: Função para Marcar Aula como Concluída
+      async function markLessonAsCompleted() {
+          if (!currentUser || !currentCourseId || !currentLessonId) {
+              alert("Erro: Não foi possível salvar o progresso. (Usuário ou Aula não encontrados)");
+              return;
+          }
+          
+          // (Simulação - A implementação real do Firestore virá no próximo passo)
+          console.log(`Salvando Progresso: 
+              Aluno: ${currentUser.uid}
+              Curso: ${currentCourseId}
+              Aula: ${currentLessonId}`);
+          
+          // Desativa o botão (Feedback Visual)
+          completeLessonBtn.disabled = true;
+          completeLessonBtn.textContent = "Concluída ✓";
+          
+          // Atualiza o ícone na sidebar (Feedback Visual)
+          const activeLessonEl = document.querySelector(`.lesson-item[data-lesson-id="${currentLessonId}"] .status-icon`);
+          if (activeLessonEl) {
+              activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`; // Ícone Dourado
+          }
+          
+          // (Futuramente, aqui chamaremos o db.firestore()...)
+          
+          alert("Progresso Salvo! (Simulação)");
       }
       
     </script>
