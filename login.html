@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Aluno | JB Jidousha Cursos</title>
+    
+    <style>
+        :root {
+            --bg-color: #f7f7f7; 
+            --content-bg: #FFFFFF; 
+            --main-text: #333333; 
+            --light-text: #6c757d; 
+            --accent-color: #DAA520; 
+            --action-color: #333333; /* PRETO (Botões) */
+            --border-color: #e9ecef; 
+            --error-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid var(--accent-color); /* Linha DOURADA de destaque */
+        }
+
+        .login-container h1 {
+            text-align: center;
+            color: var(--action-color);
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover { background-color: #555; }
+        #error-message {
+            text-align: center;
+            color: var(--error-color);
+            margin-top: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>ACESSO ALUNO</h1>
+        <form id="login-form">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" required>
+
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required>
+
+            <button type="submit">Entrar na Plataforma</button>
+        </form>
+        <p id="error-message"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+
+    <script>
+      // 🔑 SUAS CHAVES REAIS
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
+        authDomain: "jb-jidousha-curso.firebaseapp.com",
+        projectId: "jb-jidousha-curso",
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth(); 
+      const loginForm = document.getElementById('login-form');
+      const errorMessage = document.getElementById('error-message');
+
+      // 1. Lógica de Login
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        errorMessage.textContent = ''; 
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+          window.location.href = 'index.html'; // Redireciona para o Dashboard
+        } catch (error) {
+          errorMessage.textContent = 'E-mail ou senha inválidos.';
+        }
+      });
+      
+      // 2. Lógica de Redirecionamento
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          window.location.href = 'index.html'; // Se já logado, vai para o Dashboard
+        }
+      });
+    </script>
+</body>
+</html>
