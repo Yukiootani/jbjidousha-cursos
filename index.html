@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
+        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
         :root {
             --bg-color: #f7f7f7; 
             --content-bg: #FFFFFF; 
@@ -17,17 +17,7 @@
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
         }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--main-text);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        /* Top Bar - Fixo e Profissional */
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; min-height: 100vh; }
         .top-bar {
             background-color: var(--content-bg);
             padding: 15px 20px;
@@ -39,20 +29,17 @@
             top: 0;
             z-index: 1000;
         }
-        
         .logo-container {
             display: flex;
             align-items: center;
             gap: 15px; 
         }
-        
         .header-logo {
             height: 40px; 
             width: 40px; 
             border-radius: 4px; 
             object-fit: cover;
         }
-        
         .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
         .top-bar button {
             background-color: var(--action-color);
@@ -62,14 +49,7 @@
             border-radius: 4px;
             font-weight: bold;
         }
-
-        /* DASHBOARD PRINCIPAL */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
+        .dashboard-container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
         .section-title {
             font-size: 1.8em;
             color: var(--main-text); 
@@ -78,8 +58,6 @@
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 5px;
         }
-
-        /* --- CARROSSÉIS E CARDS --- */
         .horizontal-scroll-container {
             display: flex;
             overflow-x: auto;
@@ -87,7 +65,6 @@
             padding: 0 0 20px 0; 
             gap: 20px;
         }
-        
         .course-card {
             flex: 0 0 auto; 
             width: 300px; 
@@ -102,7 +79,6 @@
             cursor: pointer;
         }
         .course-card:hover { transform: scale(1.02); }
-
         .card-image-placeholder {
             height: 150px;
             background-color: #343a40; 
@@ -113,7 +89,6 @@
             font-size: 0.9em;
             font-weight: bold;
         }
-
         .card-content { padding: 15px; }
         .card-title {
             font-weight: 700; 
@@ -126,8 +101,6 @@
              font-size: 0.85em;
              margin-bottom: 10px;
         }
-        
-        /* Overlay de CADEADO (Para Cursos Não Comprados) */
         .lock-overlay {
             position: absolute;
             top: 0;
@@ -161,6 +134,38 @@
             font-size: 0.9em;
             font-weight: bold;
         }
+        .progress-card {
+            background-color: var(--content-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color); 
+        }
+        .progress-bar-container {
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%; 
+            background-color: var(--action-color); 
+            border-radius: 5px;
+            transition: width 0.5s ease; /* Animação da barra */
+        }
+        .item-button {
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -175,71 +180,26 @@
 
     <div class="dashboard-container">
 
+        <div id="progress-card-container">
+            </div>
+
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
-            <div class="course-card" onclick="window.location.href='aula.html?courseId=curso_higienizacao'">
-                <div class="card-image-placeholder">
-                   <i class="fas fa-car-wash" style="font-size: 3em;"></i>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">Higienização Profissional</div>
-                    <div class="card-subtitle">O ponto de partida para a sua nova profissão.</div>
-                    <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
-                </div>
             </div>
-        </div>
 
         <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
         <div class="horizontal-scroll-container" id="catalog-carousel">
-            <div class="course-card">
-                <div class="lock-overlay">
-                    <i class="fas fa-lock"></i>
-                    Polimento de Faróis
-                    <button>Ver Detalhes e Comprar</button>
-                </div>
-                <div class="card-image-placeholder">
-                    <i class="fas fa-lightbulb" style="font-size: 3em;"></i>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">Polimento de Faróis</div>
-                    <div class="card-subtitle">Técnicas de restauração e vedação.</div>
-                </div>
             </div>
-            <div class="course-card">
-                <div class="lock-overlay">
-                    <i class="fas fa-lock"></i>
-                    Polimento de Pintura
-                    <button>Ver Detalhes e Comprar</button>
-                </div>
-                <div class="card-image-placeholder">
-                    <i class="fas fa-spray-can" style="font-size: 3em;"></i>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">Polimento de Pintura</div>
-                    <div class="card-subtitle">Remoção de riscos e vitrificação.</div>
-                </div>
-            </div>
-        </div>
 
         <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
         <div class="horizontal-scroll-container" id="tools-carousel">
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
-                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
-                </div>
             </div>
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
-                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
 
     <script>
       // 🔑 SUAS CHAVES REAIS
@@ -255,7 +215,80 @@
 
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth(); 
+      const db = firebase.firestore();
       
+      // --- DADOS DE EXEMPLO (Simulando o Banco de Dados) ---
+      
+      // Simulando o "Perfil" do aluno no Firestore
+      const userProfileDB = {
+          // (Simulando o ID do usuário logado)
+          "DEFAULT_USER_ID": { 
+              name: "Aluno Exemplo",
+              coursesOwned: ["curso_higienizacao"] // IDs dos cursos que o aluno comprou
+          }
+      };
+      
+      // BANCO DE DADOS DE CURSOS (Para sabermos o total de aulas)
+      const coursesDB = {
+          "curso_higienizacao": {
+              title: "Higienização Profissional",
+              subtitle: "O ponto de partida para a sua nova profissão.",
+              icon: "fa-car-wash",
+              totalLessons: 3 // Total de aulas neste curso
+          },
+          "curso_polimento_farol": {
+              title: "Polimento de Faróis",
+              subtitle: "Técnicas de restauração e vedação.",
+              icon: "fa-lightbulb",
+              totalLessons: 5
+          },
+          "curso_polimento_pintura": {
+              title: "Polimento de Pintura",
+              subtitle: "Remoção de riscos e vitrificação.",
+              icon: "fa-spray-can",
+              totalLessons: 10
+          }
+      };
+
+      const allTools = [
+          {
+              id: "pdf_fornecedores",
+              title: "Fornecedores JP/BR (PDF)",
+              subtitle: "Documento exclusivo com contato e código de desconto.",
+              link: "#", // Link para o PDF no Firebase Storage
+              icon: "fa-file-pdf",
+              buttonText: "Baixar PDF"
+          },
+          {
+              id: "planilha_lucro",
+              title: "Planilha de Lucro",
+              subtitle: "Calcule o rendimento por serviço de higienização.",
+              link: "#", // Link para o Excel/Sheets
+              icon: "fa-calculator",
+              buttonText: "Baixar Planilha"
+          },
+          {
+              id: "suporte_whatsapp",
+              title: "Suporte VIP",
+              subtitle: "Fale com um especialista para dúvidas técnicas.",
+              link: "#", // Link do WhatsApp
+              icon: "fa-whatsapp",
+              buttonText: "Acessar Suporte"
+          }
+      ];
+
+      // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
+      
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        } else {
+          console.log("Usuário logado:", user.uid);
+          // Usamos o ID de usuário simulado por enquanto
+          loadDashboard(user, userProfileDB["DEFAULT_USER_ID"]); 
+        }
+      });
+
       // Lógica de Logout
       document.getElementById('logout-btn').addEventListener('click', () => {
           auth.signOut().then(() => {
@@ -263,12 +296,116 @@
           });
       });
 
-      // PROTEÇÃO CRÍTICA
-      auth.onAuthStateChanged((user) => {
-        if (!user) {
-          window.location.href = 'login.html';
-        }
-      });
+      // ATUALIZADO: Função para carregar o Dashboard (agora Assíncrona)
+      async function loadDashboard(currentUser, userData) {
+          const progressContainer = document.getElementById('progress-card-container');
+          const myCoursesCarousel = document.getElementById('my-courses-carousel');
+          const catalogCarousel = document.getElementById('catalog-carousel');
+          const toolsCarousel = document.getElementById('tools-carousel');
+          
+          let overallProgressPercent = 0;
+          let overallProgressText = "Nenhum progresso ainda.";
+          
+          // 1. Renderizar Carrosséis
+          for (const courseId in coursesDB) {
+              const course = coursesDB[courseId];
+              
+              if (userData.coursesOwned.includes(courseId)) {
+                  
+                  // NOVO: Calcular o progresso real
+                  const progressData = await getUserProgress(currentUser.uid, courseId);
+                  const completedCount = progressData.completedCount;
+                  const totalLessons = course.totalLessons;
+                  let progressPercent = 0;
+                  
+                  if (totalLessons > 0) {
+                      progressPercent = Math.round((completedCount / totalLessons) * 100);
+                  }
+                  
+                  if (courseId === "curso_higienizacao") {
+                      overallProgressPercent = progressPercent;
+                      overallProgressText = `Seu progresso no curso "${course.title}":`;
+                  }
+
+                  // Adiciona em "Meus Cursos"
+                  myCoursesCarousel.innerHTML += `
+                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${course.id}'">
+                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                          <div class="card-content">
+                              <div class="card-title">${course.title}</div>
+                              <div class="card-subtitle">${course.subtitle}</div>
+                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">${progressPercent}% Concluído</p>
+                          </div>
+                      </div>
+                  `;
+              } else {
+                  // Adiciona no "Catálogo" com cadeado
+                  catalogCarousel.innerHTML += `
+                      <div class="course-card">
+                          <div class="lock-overlay">
+                              <i class="fas fa-lock"></i>
+                              ${course.title}
+                              <button>Ver Detalhes e Comprar</button>
+                          </div>
+                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                          <div class="card-content">
+                              <div class="card-title">${course.title}</div>
+                              <div class="card-subtitle">${course.subtitle}</div>
+                          </div>
+                      </div>
+                  `;
+              }
+          }
+          
+          // 2. Renderizar Cartão de Progresso (Com dados dinâmicos)
+          progressContainer.innerHTML = `
+              <div class="progress-card">
+                  <h2>Bem-vindo, ${userData.name}!</h2>
+                  <p style="color:var(--light-text);">${overallProgressText}</p>
+                  <div class="progress-bar-container">
+                      <div class="progress-bar" style="width: ${overallProgressPercent}%;"></div>
+                  </div>
+                  <p style="margin-top:15px;"><a href="aula.html?courseId=curso_higienizacao" style="color:var(--action-color); font-weight:bold;">Continuar assistindo</a></p>
+              </div>
+          `;
+          
+          // 3. Renderizar Ferramentas
+          allTools.forEach(tool => {
+              toolsCarousel.innerHTML += `
+                  <div class="course-card" style="min-height: 150px;" onclick="window.location.href='${tool.link}'">
+                      <div class="card-content">
+                          <div class="card-title" style="color: var(--accent-color);"><i class="fas ${tool.icon}"></i> ${tool.title}</div>
+                          <div class="card-subtitle">${tool.subtitle}</div>
+                          <button class="item-button" style="background-color: var(--accent-color); color: var(--main-text);">${tool.buttonText}</button>
+                      </div>
+                  </div>
+              `;
+          });
+      }
+      
+      // 4. NOVO: Função Helper para buscar o progresso
+      async function getUserProgress(userId, courseId) {
+          const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
+          
+          try {
+              const doc = await progressRef.get();
+              
+              if (doc.exists) {
+                  const completedLessons = doc.data().completedLessons || {};
+                  const completedCount = Object.keys(completedLessons).length;
+                  console.log("Progresso lido:", completedCount);
+                  return { completedCount: completedCount, completedLessons: completedLessons };
+              } else {
+                  console.log("Nenhum progresso encontrado, retornando 0.");
+                  return { completedCount: 0, completedLessons: {} };
+              }
+          } catch (error) {
+              console.error("Erro ao LER progresso:", error);
+              // Isso acontece se as Regras do Firestore estiverem erradas
+              return { completedCount: 0, completedLessons: {} };
+          }
+      }
+      
     </script>
 </body>
 </html>
