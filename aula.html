@@ -63,10 +63,27 @@
         }
         .lesson-details h1 { font-size: 2em; font-weight: 700; }
         .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
-        .navigation-buttons { border-top: 1px solid var(--border-color); }
-        .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
+        .navigation-buttons { 
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color); 
+            display: flex; /* Adicionado para alinhar botões */
+            justify-content: space-between; /* Adicionado para alinhar botões */
+        }
+        .navigation-buttons button { 
+            background-color: var(--action-color); 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            cursor: pointer;
+        }
         .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
-        .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .navigation-buttons button:disabled { 
+            background-color: #ccc; 
+            cursor: not-allowed; 
+        }
         
         .sidebar {
             width: 100%; 
@@ -197,13 +214,20 @@
       const lessonTitleEl = document.getElementById('current-lesson-title');
       const moduleTitleEl = document.getElementById('current-module-title');
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
+      
+      // NOVO: Botões de Navegação
+      const prevLessonBtn = document.getElementById('prev-lesson-btn');
+      const nextLessonBtn = document.getElementById('next-lesson-btn');
+      
+      // NOVO: Lista Plana de Aulas (para navegação)
+      let flatLessonList = [];
+      let currentLessonIndex = -1;
 
       // 1. Proteção de Login
       auth.onAuthStateChanged((user) => {
         if (!user) {
           window.location.href = 'login.html';
         } else {
-            // Se o usuário estiver logado, inicializa a página
             initializePage(user);
         }
       });
@@ -211,7 +235,7 @@
       // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
       function initializePage(user) {
           const urlParams = new URLSearchParams(window.location.search);
-          const courseId = urlParams.get('courseId') || "curso_higienizacao"; // Pega o ID da URL ou usa o padrão
+          const courseId = urlParams.get('courseId') || "curso_higienizacao"; 
           
           if (!courseId || !coursesDB[courseId]) {
               alert("Erro: Curso não encontrado!");
@@ -222,7 +246,7 @@
           const course = coursesDB[courseId];
           courseTitleEl.textContent = course.title;
           
-          // Renderiza a Sidebar
+          // Renderiza a Sidebar E CRIA A LISTA PLANA
           course.modules.forEach(module => {
               const moduleEl = document.createElement('li');
               moduleEl.innerHTML = `<h3>${module.title}</h3>`;
@@ -230,6 +254,7 @@
               module.lessons.forEach(lesson => {
                   const lessonEl = document.createElement('div');
                   lessonEl.className = 'lesson-item';
+                  lessonEl.dataset.lessonId = lesson.id; // Salva o ID da aula
                   lessonEl.dataset.videoId = lesson.videoId;
                   lessonEl.dataset.title = lesson.title;
                   lessonEl.dataset.module = module.title;
@@ -242,16 +267,22 @@
                   
                   lessonEl.addEventListener('click', () => loadLesson(lessonEl));
                   moduleEl.appendChild(lessonEl);
+                  
+                  // Adiciona à lista plana de navegação
+                  flatLessonList.push(lessonEl); 
               });
               
               moduleListEl.appendChild(moduleEl);
           });
           
           // Carrega a primeira aula por padrão
-          const firstLesson = document.querySelector('.lesson-item');
-          if (firstLesson) {
-              loadLesson(firstLesson);
+          if (flatLessonList.length > 0) {
+              loadLesson(flatLessonList[0]);
           }
+          
+          // NOVO: Adiciona eventos aos botões de navegação
+          prevLessonBtn.addEventListener('click', loadPreviousLesson);
+          nextLessonBtn.addEventListener('click', loadNextLesson);
       }
 
       // Função para Carregar a Aula
@@ -260,11 +291,36 @@
           lessonElement.classList.add('active');
           
           const videoId = lessonElement.dataset.videoId;
+          currentLessonIndex = flatLessonList.indexOf(lessonElement); // Atualiza o índice atual
           
           videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = lessonElement.dataset.title;
           moduleTitleEl.textContent = lessonElement.dataset.module;
           lessonDescriptionEl.textContent = lessonElement.dataset.description;
+          
+          // NOVO: Atualiza o estado dos botões de navegação
+          updateNavigationButtons();
+      }
+      
+      // NOVO: Função para atualizar botões
+      function updateNavigationButtons() {
+          // Desabilita "Anterior" se for a primeira aula (índice 0)
+          prevLessonBtn.disabled = (currentLessonIndex === 0);
+          
+          // Desabilita "Próxima" se for a última aula
+          nextLessonBtn.disabled = (currentLessonIndex === flatLessonList.length - 1);
+      }
+      
+      // NOVO: Funções de clique de navegação
+      function loadPreviousLesson() {
+          if (currentLessonIndex > 0) {
+              loadLesson(flatLessonList[currentLessonIndex - 1]);
+          }
+      }
+      function loadNextLesson() {
+          if (currentLessonIndex < flatLessonList.length - 1) {
+              loadLesson(flatLessonList[currentLessonIndex + 1]);
+          }
       }
       
     </script>
