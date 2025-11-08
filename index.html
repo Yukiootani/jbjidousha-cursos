@@ -7,17 +7,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
+        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
         :root {
-            --bg-color: #f7f7f7; 
-            --content-bg: #FFFFFF; 
-            --main-text: #333333; 
-            --light-text: #6c757d; 
-            --accent-color: #DAA520; 
+            --bg-color: #f7f7f7; /* Fundo Principal Cinza Suave */
+            --content-bg: #FFFFFF; /* Fundo Branco Puro para Blocos */
+            --main-text: #333333; /* Texto Principal Preto */
+            --light-text: #6c757d; /* Cinza para Subtítulos */
+            --accent-color: #DAA520; /* DOURADO Elegante */
             --action-color: #333333; /* PRETO (Botões) */
-            --border-color: #e9ecef; 
+            --border-color: #e9ecef; /* Borda Suave */
         }
-        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; min-height: 100vh; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Top Bar - Fixo e Profissional */
         .top-bar {
             background-color: var(--content-bg);
             padding: 15px 20px;
@@ -29,6 +39,22 @@
             top: 0;
             z-index: 1000;
         }
+        
+        /* NOVO: Container para alinhar Logo + Título */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Espaço entre o logo e o título */
+        }
+        
+        /* NOVO: Estilo do Logo */
+        .header-logo {
+            height: 40px; /* Altura do logo */
+            width: 40px; /* Largura do logo */
+            border-radius: 4px; /* Borda levemente arredondada */
+            object-fit: cover;
+        }
+        
         .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
         .top-bar button {
             background-color: var(--action-color);
@@ -38,7 +64,14 @@
             border-radius: 4px;
             font-weight: bold;
         }
-        .dashboard-container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+
+        /* DASHBOARD PRINCIPAL */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
         .section-title {
             font-size: 1.8em;
             color: var(--main-text); 
@@ -47,6 +80,8 @@
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 5px;
         }
+
+        /* --- CARROSSÉIS E CARDS --- */
         .horizontal-scroll-container {
             display: flex;
             overflow-x: auto;
@@ -54,6 +89,7 @@
             padding: 0 0 20px 0; 
             gap: 20px;
         }
+        
         .course-card {
             flex: 0 0 auto; 
             width: 300px; 
@@ -68,6 +104,7 @@
             cursor: pointer;
         }
         .course-card:hover { transform: scale(1.02); }
+
         .card-image-placeholder {
             height: 150px;
             background-color: #343a40; 
@@ -78,6 +115,7 @@
             font-size: 0.9em;
             font-weight: bold;
         }
+
         .card-content { padding: 15px; }
         .card-title {
             font-weight: 700; 
@@ -90,6 +128,8 @@
              font-size: 0.85em;
              margin-bottom: 10px;
         }
+        
+        /* Overlay de CADEADO (Para Cursos Não Comprados) */
         .lock-overlay {
             position: absolute;
             top: 0;
@@ -123,6 +163,8 @@
             font-size: 0.9em;
             font-weight: bold;
         }
+
+        /* Cartão de Progresso (Visão Geral) */
         .progress-card {
             background-color: var(--content-bg);
             padding: 25px;
@@ -159,7 +201,10 @@
 <body>
     
     <div class="top-bar">
-        <h1>JB JIDOUSHA CURSOS</h1>
+        <div class="logo-container">
+            <img src="https://artebrasil.jp/wp-content/uploads/2024/02/Midia-1-654D52D1-1AAC-49EB-9596-CFEBD3F04B96.jpg" alt="JB Jidousha Logo" class="header-logo">
+            <h1>JB JIDOUSHA CURSOS</h1>
+        </div>
         <button id="logout-btn">Sair</button>
     </div>
 
