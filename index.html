@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
+        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
         :root {
             --bg-color: #f7f7f7; 
             --content-bg: #FFFFFF; 
@@ -161,15 +161,15 @@
 
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
-            </div>
+        </div>
 
         <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
         <div class="horizontal-scroll-container" id="catalog-carousel">
-            </div>
+        </div>
 
         <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
         <div class="horizontal-scroll-container" id="tools-carousel">
-            </div>
+        </div>
 
     </div>
 
@@ -278,8 +278,9 @@
               
               if (userData.coursesOwned.includes(courseId)) {
                   // Adiciona em "Meus Cursos"
+                  // 🚨 CORREÇÃO DO CACHE: Adicionado "?v=2" ao link da aula
                   myCoursesCarousel.innerHTML += `
-                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
+                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}&v=2'">
                           <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
                           <div class="card-content">
                               <div class="card-title">${course.title}</div>
