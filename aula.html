@@ -7,16 +7,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
+        /* [O CSS Premium (Branco, Preto, Dourado) está aqui...] */
         :root {
             --bg-color: #f7f7f7; 
             --content-bg: #FFFFFF; 
             --main-text: #333333; 
             --light-text: #6c757d; 
             --accent-color: #DAA520; 
-            --action-color: #333333; /* PRETO (Botões) */
+            --action-color: #333333; 
             --border-color: #e9ecef; 
-            --success-color: #28a745; /* Verde para "Concluído" */
+            --success-color: #28a745;
         }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
@@ -91,9 +91,6 @@
             color: var(--main-text);
             cursor: default;
         }
-
-
-        /* 2. Sidebar (Lista de Aulas) */
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -148,37 +145,27 @@
     </div>
 
     <div class="platform-container">
-
         <div class="main-content">
-            
             <div class="video-player-container">
-                <iframe id="video-player"
-                    src="" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
+                <iframe id="video-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
-
             <div class="lesson-details">
                 <p class="module-title" id="current-module-title">Módulo...</p>
                 <h1 id="current-lesson-title">Carregando Aula...</h1>
                 <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
-
                 <div class="progress-controls">
                     <button id="complete-lesson-btn">Marcar como Concluída</button>
                 </div>
-
                 <div class="navigation-buttons">
                     <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
                     <button id="next-lesson-btn">Próxima Aula →</button>
                 </div>
             </div>
         </div>
-
         <div class="sidebar">
             <h2>Conteúdo do Curso</h2>
             <ul id="course-outline" class="module-list">
-                </ul>
+            </ul>
         </div>
     </div>
 
@@ -187,6 +174,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
 
     <script>
+      alert("DEBUG 1: Script principal iniciado. A carregar Firebase...");
+      
       // 🔑 SUAS CHAVES REAIS
       const firebaseConfig = {
         apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
@@ -201,6 +190,7 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
       const auth = firebase.auth(); 
+      alert("DEBUG 2: Firebase inicializado. A verificar Auth...");
       
       // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
       const coursesDB = {
@@ -239,16 +229,18 @@
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
       const completeLessonBtn = document.getElementById('complete-lesson-btn');
 
-      // --- CORREÇÃO DE LÓGICA (TUDO DENTRO DO AUTH) ---
+      // --- LÓGICA DE INICIALIZAÇÃO E AUTENTICAÇÃO ---
 
       auth.onAuthStateChanged(async (user) => {
+        alert("DEBUG 3: Auth State Changed. Verificando...");
         if (!user) {
           // 1. NÃO ESTÁ LOGADO
+          alert("DEBUG 4: Usuário NÃO logado. A redirecionar para login.html");
           window.location.href = 'login.html';
         } else {
           // 2. ESTÁ LOGADO
+          alert("DEBUG 4: Usuário LOGADO: " + user.uid);
           currentUser = user; 
-          console.log("Usuário logado:", currentUser.uid);
           
           // 3. INICIA A LÓGICA DA PÁGINA (SÓ DEPOIS DE LOGAR)
           await initializePage();
@@ -257,6 +249,7 @@
       
       // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
       async function initializePage() {
+          alert("DEBUG 5: initializePage() iniciado.");
           const urlParams = new URLSearchParams(window.location.search);
           currentCourseId = urlParams.get('courseId'); 
           
@@ -269,7 +262,6 @@
           const course = coursesDB[currentCourseId];
           courseTitleEl.textContent = course.title;
           
-          // Carrega o progresso ANTES de renderizar a sidebar
           await loadUserProgress(currentUser.uid);
           
           // Renderiza a Sidebar
@@ -286,114 +278,8 @@
                   lessonEl.dataset.module = module.title;
                   lessonEl.dataset.description = lesson.description;
                   
-                  // Verifica se já está concluída
                   const isCompleted = userProgress[lesson.id];
                   
                   lessonEl.innerHTML = `
                       <span>${lesson.title}</span>
-                      <span class="status-icon">${isCompleted ? '<i class="fas fa-check" style="color: var(--accent-color);"></i>' : '<i class="fas fa-play"></i>'}</span>
-                  `;
-                  
-                  lessonEl.addEventListener('click', () => loadLesson(lessonEl));
-                  moduleEl.appendChild(lessonEl);
-              });
-              
-              moduleListEl.appendChild(moduleEl);
-          });
-          
-          // Carrega a primeira aula por padrão
-          const firstLesson = document.querySelector('.lesson-item');
-          if (firstLesson) {
-              loadLesson(firstLesson);
-          }
-          
-          // Adiciona evento ao botão de Concluir
-          completeLessonBtn.addEventListener('click', markLessonAsCompleted);
-      }
-
-      // Carregar o Progresso do Aluno do Firestore
-      async function loadUserProgress(userId) {
-          if (!userId || !currentCourseId) return;
-          
-          const progressRef = db.collection('userProgress').doc(userId).collection(currentCourseId).doc('progress');
-          const doc = await progressRef.get();
-          
-          if (doc.exists) {
-              userProgress = doc.data().completedLessons || {};
-          } else {
-              userProgress = {};
-          }
-      }
-
-      // Checar status da aula carregada
-      function checkCurrentLessonStatus() {
-          if (userProgress[currentLessonId]) {
-              completeLessonBtn.disabled = true;
-              completeLessonBtn.textContent = "Concluída ✓";
-              completeLessonBtn.classList.add('completed');
-V
-          } else {
-              completeLessonBtn.disabled = false;
-              completeLessonBtn.textContent = "Marcar como Concluída";
-              completeLessonBtn.classList.remove('completed');
-          }
-      }
-      
-      // Função para Carregar a Aula
-      function loadLesson(lessonElement) {
-          document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
-          lessonElement.classList.add('active');
-          
-          currentLessonId = lessonElement.dataset.lessonId; 
-          
-          videoPlayer.src = `https://www.youtube.com/embed/${lessonElement.dataset.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
-          lessonTitleEl.textContent = lessonElement.dataset.title;
-          moduleTitleEl.textContent = lessonElement.dataset.module;
-          lessonDescriptionEl.textContent = lessonElement.dataset.description;
-          
-          // Checa o status da nova aula carregada
-          checkCurrentLessonStatus();
-      }
-      
-      // Função para Marcar Aula como Concluída (Salvando no Firebase)
-      async function markLessonAsCompleted() {
-          // A verificação do 'currentUser' já foi feita pelo 'onAuthStateChanged'
-          
-          completeLessonBtn.disabled = true;
-          completeLessonBtn.textContent = "Salvando...";
-          
-          const progressRef = db.collection('userProgress').doc(currentUser.uid).collection(currentCourseId).doc('progress');
-
-          // Atualiza o objeto de progresso local
-          userProgress[currentLessonId] = true;
-
-          try {
-              // Salva o objeto inteiro no Firestore
-              await progressRef.set({
-                  completedLessons: userProgress
-              }, { merge: true });
-              
-              // Feedback Visual Final
-              completeLessonBtn.textContent = "Concluída ✓";
-              completeLessonBtn.classList.add('completed');
-              const activeLessonEl = document.querySelector(`.lesson-item[data-lesson-id="${currentLessonId}"] .status-icon`);
-              if (activeLessonEl) {
-                  activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
-              }
-              console.log("Progresso salvo no Firebase!");
-
-          } catch (error) {
-              console.error("Erro ao salvar progresso:", error);
-              alert("Erro ao salvar seu progresso. Verifique sua conexão e tente novamente.");
-              
-              // Reverte o botão se o salvamento falhar
-              userProgress[currentLessonId] = false; // Remove do progresso local
-              completeLessonBtn.disabled = false; 
-              completeLessonBtn.textContent = "Marcar como Concluída";
-              completeLessonBtn.classList.remove('completed');
-          }
-      }
-      
-    </script>
-</body>
-</html>
+                      <span class="status-icon">${isCompleted ? '<i class="fas fa-check" style="color: var
