@@ -207,4 +207,195 @@
         apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
         authDomain: "jb-jidousha-curso.firebaseapp.com",
         projectId: "jb-jidousha-curso",
-        storageBucket: "jb-jidousha-curso.firebas
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth(); 
+      const db = firebase.firestore();
+      
+      // --- DADOS DE EXEMPLO (Simulando o Banco de Dados) ---
+      
+      const userExample = {
+          name: "Aluno Exemplo",
+          coursesOwned: ["curso_higienizacao"] // IDs dos cursos que o aluno comprou
+      };
+      
+      // BANCO DE DADOS DE CURSOS (Para sabermos o total de aulas)
+      const coursesDB = {
+          "curso_higienizacao": {
+              title: "Higienização Profissional",
+              subtitle: "O ponto de partida para a sua nova profissão.",
+              icon: "fa-car-wash",
+              totalLessons: 3 // Total de aulas neste curso
+          },
+          "curso_polimento_farol": {
+              title: "Polimento de Faróis",
+              subtitle: "Técnicas de restauração e vedação.",
+              icon: "fa-lightbulb",
+              totalLessons: 5
+          },
+          "curso_polimento_pintura": {
+              title: "Polimento de Pintura",
+              subtitle: "Remoção de riscos e vitrificação.",
+              icon: "fa-spray-can",
+              totalLessons: 10
+          }
+      };
+
+      const allTools = [
+          {
+              id: "pdf_fornecedores",
+              title: "Fornecedores JP/BR (PDF)",
+              subtitle: "Documento exclusivo com contato e código de desconto.",
+              link: "#", // Link para o PDF no Firebase Storage
+              icon: "fa-file-pdf",
+              buttonText: "Baixar PDF"
+          },
+          {
+              id: "planilha_lucro",
+              title: "Planilha de Lucro",
+              subtitle: "Calcule o rendimento por serviço de higienização.",
+              link: "#", // Link para o Excel/Sheets
+              icon: "fa-calculator",
+              buttonText: "Baixar Planilha"
+          },
+          {
+              id: "suporte_whatsapp",
+              title: "Suporte VIP",
+              subtitle: "Fale com um especialista para dúvidas técnicas.",
+              link: "#", // Link do WhatsApp
+              icon: "fa-whatsapp",
+              buttonText: "Acessar Suporte"
+          }
+      ];
+
+      // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
+      
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        } else {
+          // Usuário está logado, vamos carregar o dashboard
+          console.log("Usuário logado:", user.uid);
+          loadDashboard(user, userExample); // Passa o usuário real e os dados de exemplo
+        }
+      });
+
+      // Lógica de Logout
+      document.getElementById('logout-btn').addEventListener('click', () => {
+          auth.signOut().then(() => {
+              window.location.href = 'login.html'; 
+          });
+      });
+
+      // ATUALIZADO: Função para carregar o Dashboard (agora Assíncrona)
+      async function loadDashboard(currentUser, userData) {
+          const progressContainer = document.getElementById('progress-card-container');
+          const myCoursesCarousel = document.getElementById('my-courses-carousel');
+          const catalogCarousel = document.getElementById('catalog-carousel');
+          const toolsCarousel = document.getElementById('tools-carousel');
+          
+          let overallProgressPercent = 0;
+          let overallProgressText = "Nenhum progresso ainda.";
+          
+          // 1. Renderizar Carrosséis
+          for (const courseId in coursesDB) {
+              const course = coursesDB[courseId];
+              
+              if (userData.coursesOwned.includes(course.id)) {
+                  // --- O ALUNO POSSUI ESTE CURSO ---
+                  
+                  // NOVO: Calcular o progresso real
+                  const progressData = await getUserProgress(currentUser.uid, course.id);
+                  const completedCount = progressData.completedCount;
+                  const totalLessons = course.totalLessons;
+                  let progressPercent = 0;
+                  
+                  if (totalLessons > 0) {
+                      progressPercent = Math.round((completedCount / totalLessons) * 100);
+                  }
+                  
+                  // Salva o progresso do primeiro curso para o card principal
+                  if (overallProgressPercent === 0) {
+                      overallProgressPercent = progressPercent;
+                      overallProgressText = `Seu progresso no curso "${course.title}":`;
+                  }
+
+                  // Adiciona em "Meus Cursos"
+                  myCoursesCarousel.innerHTML += `
+                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${course.id}'">
+                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                          <div class="card-content">
+                              <div class="card-title">${course.title}</div>
+                              <div class="card-subtitle">${course.subtitle}</div>
+                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">${progressPercent}% Concluído</p>
+                          </div>
+                      </div>
+                  `;
+              } else {
+                  // --- O ALUNO NÃO POSSUI ESTE CURSO ---
+                  // Adiciona no "Catálogo" com cadeado
+                  catalogCarousel.innerHTML += `
+                      <div class="course-card">
+                          <div class="lock-overlay">
+                              <i class="fas fa-lock"></i>
+                              ${course.title}
+                              <button>Ver Detalhes e Comprar</button>
+                          </div>
+                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                          <div class="card-content">
+                              <div class="card-title">${course.title}</div>
+                              <div class="card-subtitle">${course.subtitle}</div>
+                          </div>
+                      </div>
+                  `;
+              }
+          }
+          
+          // 2. Renderizar Cartão de Progresso (Com dados dinâmicos)
+          progressContainer.innerHTML = `
+              <div class="progress-card">
+                  <h2>Bem-vindo, ${userData.name}!</h2>
+                  <p style="color:var(--light-text);">${overallProgressText}</p>
+                  <div class="progress-bar-container">
+                      <div class="progress-bar" style="width: ${overallProgressPercent}%;"></div>
+                  </div>
+                  <p style="margin-top:15px;"><a href="aula.html?courseId=curso_higienizacao" style="color:var(--action-color); font-weight:bold;">Continuar assistindo</a></p>
+              </div>
+          `;
+          
+          // 3. Renderizar Ferramentas
+          allTools.forEach(tool => {
+              toolsCarousel.innerHTML += `
+                  <div class="course-card" style="min-height: 150px;" onclick="window.location.href='${tool.link}'">
+                      <div class="card-content">
+                          <div class="card-title" style="color: var(--accent-color);"><i class="fas ${tool.icon}"></i> ${tool.title}</div>
+                          <div class="card-subtitle">${tool.subtitle}</div>
+                          <button class="item-button" style="background-color: var(--accent-color); color: var(--main-text);">${tool.buttonText}</button>
+                      </div>
+                  </div>
+              `;
+          });
+      }
+      
+      // 4. NOVO: Função Helper para buscar o progresso
+      async function getUserProgress(userId, courseId) {
+          const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
+          const doc = await progressRef.get();
+          
+          if (doc.exists) {
+              const completedLessons = doc.data().completedLessons || {};
+              const completedCount = Object.keys(completedLessons).length;
+              return { completedCount: completedCount, completedLessons: completedLessons };
+          } else {
+              return { completedCount: 0, completedLessons: {} };
+          }
+      }
+      
+    </script>
+</body>
+</html>
