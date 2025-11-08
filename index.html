@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Catálogo de Cursos | JB Jidousha Cursos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -219,22 +219,17 @@
       
       // --- DADOS DE EXEMPLO (Simulando o Banco de Dados) ---
       
-      // Simulando o "Perfil" do aluno no Firestore
-      const userProfileDB = {
-          // (Simulando o ID do usuário logado)
-          "DEFAULT_USER_ID": { 
-              name: "Aluno Exemplo",
-              coursesOwned: ["curso_higienizacao"] // IDs dos cursos que o aluno comprou
-          }
+      const userExample = {
+          name: "Aluno Exemplo",
+          coursesOwned: ["curso_higienizacao"] 
       };
       
-      // BANCO DE DADOS DE CURSOS (Para sabermos o total de aulas)
       const coursesDB = {
           "curso_higienizacao": {
               title: "Higienização Profissional",
               subtitle: "O ponto de partida para a sua nova profissão.",
               icon: "fa-car-wash",
-              totalLessons: 3 // Total de aulas neste curso
+              totalLessons: 3 
           },
           "curso_polimento_farol": {
               title: "Polimento de Faróis",
@@ -255,7 +250,7 @@
               id: "pdf_fornecedores",
               title: "Fornecedores JP/BR (PDF)",
               subtitle: "Documento exclusivo com contato e código de desconto.",
-              link: "#", // Link para o PDF no Firebase Storage
+              link: "#", 
               icon: "fa-file-pdf",
               buttonText: "Baixar PDF"
           },
@@ -263,7 +258,7 @@
               id: "planilha_lucro",
               title: "Planilha de Lucro",
               subtitle: "Calcule o rendimento por serviço de higienização.",
-              link: "#", // Link para o Excel/Sheets
+              link: "#", 
               icon: "fa-calculator",
               buttonText: "Baixar Planilha"
           },
@@ -271,7 +266,7 @@
               id: "suporte_whatsapp",
               title: "Suporte VIP",
               subtitle: "Fale com um especialista para dúvidas técnicas.",
-              link: "#", // Link do WhatsApp
+              link: "#", 
               icon: "fa-whatsapp",
               buttonText: "Acessar Suporte"
           }
@@ -284,8 +279,7 @@
           window.location.href = 'login.html';
         } else {
           console.log("Usuário logado:", user.uid);
-          // Usamos o ID de usuário simulado por enquanto
-          loadDashboard(user, userProfileDB["DEFAULT_USER_ID"]); 
+          loadDashboard(user, userExample); 
         }
       });
 
@@ -296,7 +290,7 @@
           });
       });
 
-      // ATUALIZADO: Função para carregar o Dashboard (agora Assíncrona)
+      // ATUALIZADO: Função para carregar o Dashboard
       async function loadDashboard(currentUser, userData) {
           const progressContainer = document.getElementById('progress-card-container');
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
@@ -312,7 +306,7 @@
               
               if (userData.coursesOwned.includes(courseId)) {
                   
-                  // NOVO: Calcular o progresso real
+                  // Calcular o progresso real
                   const progressData = await getUserProgress(currentUser.uid, courseId);
                   const completedCount = progressData.completedCount;
                   const totalLessons = course.totalLessons;
@@ -328,8 +322,9 @@
                   }
 
                   // Adiciona em "Meus Cursos"
+                  // 🚨 CORREÇÃO APLICADA AQUI: Usando 'courseId' em vez de 'course.id'
                   myCoursesCarousel.innerHTML += `
-                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${course.id}'">
+                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
                           <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
                           <div class="card-content">
                               <div class="card-title">${course.title}</div>
@@ -383,7 +378,7 @@
           });
       }
       
-      // 4. NOVO: Função Helper para buscar o progresso
+      // 4. Função Helper para buscar o progresso
       async function getUserProgress(userId, courseId) {
           const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
           
@@ -401,7 +396,6 @@
               }
           } catch (error) {
               console.error("Erro ao LER progresso:", error);
-              // Isso acontece se as Regras do Firestore estiverem erradas
               return { completedCount: 0, completedLessons: {} };
           }
       }
