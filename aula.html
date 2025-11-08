@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aula | JB Jidousha Cursos</title>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <style>
-        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
+        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
         :root {
             --bg-color: #f7f7f7; 
             --content-bg: #FFFFFF; 
@@ -16,15 +17,7 @@
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
         }
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--main-text);
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Top Bar - Header Superior */
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
             background-color: var(--content-bg);
             padding: 15px 20px;
@@ -43,23 +36,17 @@
             font-weight: bold;
             text-decoration: none;
         }
-
-        /* Estrutura Principal */
         .platform-container {
             display: flex;
             flex-direction: column; 
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        /* 1. Área do Conteúdo Principal (VÍDEO) */
         .main-content {
             flex: 1;
             padding: 20px;
             background-color: var(--content-bg);
         }
-
-        /* Player de Vídeo */
         .video-player-container {
             position: relative;
             width: 100%;
@@ -74,16 +61,13 @@
             height: 100%;
             border: none;
         }
-
-        /* Detalhes da Aula e Botões */
         .lesson-details h1 { font-size: 2em; font-weight: 700; }
         .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
         .navigation-buttons { border-top: 1px solid var(--border-color); }
         .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
         .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
-
-
-        /* 2. Sidebar (Lista de Aulas) */
+        .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -97,16 +81,26 @@
             font-weight: bold;
         }
         .module-list { list-style: none; padding: 0; margin: 0; }
-        .module-list h3 { border-top: 1px solid var(--border-color); }
+        .module-list h3 { border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .lesson-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .lesson-item.active {
             background-color: #e9ecef; 
             color: var(--action-color);
             border-left: 4px solid var(--accent-color); /* Destaque DOURADO */
+            font-weight: bold;
         }
         .lesson-item:hover { background-color: #f0f0f0; }
-        .lesson-item .status-icon.completed { color: var(--accent-color); }
-
-        /* Responsividade (Desktop) */
+        .lesson-item .status-icon { color: var(--light-text); }
+        .lesson-item.active .status-icon { color: var(--accent-color); }
+        
         @media (min-width: 1024px) {
             .platform-container { flex-direction: row; }
             .main-content { flex: 2; padding: 20px 20px 20px 0; }
@@ -121,7 +115,7 @@
 <body>
     
     <div class="top-bar">
-        <h1>JB JIDOUSHA CURSOS</h1>
+        <h1 id="course-title">Carregando Curso...</h1>
         <a href="index.html">← Voltar ao Dashboard</a>
     </div>
 
@@ -131,18 +125,18 @@
             
             <div class="video-player-container">
                 <iframe id="video-player"
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                    src="" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
             </div>
 
             <div class="lesson-details">
-                <p class="module-title" id="current-module-title">Módulo 1: Higienização e Produtos</p>
-                <h1 id="current-lesson-title">Aula 1: Segurança e Produtos Químicos</h1>
+                <p class="module-title" id="current-module-title">Módulo...</p>
+                <h1 id="current-lesson-title">Carregando Aula...</h1>
                 
                 <p id="current-lesson-description">
-                    Este é o início do seu treinamento profissional em Higienização Automotiva.
+                    Selecione uma aula na lista ao lado para começar.
                 </p>
 
                 <div class="navigation-buttons">
@@ -155,14 +149,7 @@
         <div class="sidebar">
             <h2>Conteúdo do Curso</h2>
             <ul id="course-outline" class="module-list">
-                <li id="module-1">
-                    <h3>Módulo 1: Fundamentos</h3>
-                    <div class="lesson-item active" data-video-url="dQw4w9WgXcQ">
-                        <span>1.1. Segurança e Produtos</span>
-                        <span class="status-icon">▶</span>
-                    </div>
-                </li>
-            </ul>
+                </ul>
         </div>
     </div>
 
@@ -186,12 +173,113 @@
       const db = firebase.firestore();
       const auth = firebase.auth(); 
       
-      // PROTEÇÃO CRÍTICA
+      // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
+      const coursesDB = {
+          "curso_higienizacao": {
+              title: "Curso de Higienização Profissional",
+              modules: [
+                  {
+                      title: "Módulo 1: Fundamentos",
+                      lessons: [
+                          { id: "L01", title: "1.1. Segurança e Produtos", videoId: "dQw4w9WgXcQ", description: "Aprenda sobre EPIs e diluição correta dos produtos." },
+                          { id: "L02", title: "1.2. Limpeza de Painel e Forro", videoId: "b66r_M-o72g", description: "Técnicas de limpeza a seco e com vapor." }
+                      ]
+                  },
+                  {
+                      title: "Módulo 2: O Estofamento",
+                      lessons: [
+                          { id: "L03", title: "2.1. Técnicas de Extração", videoId: "R2-43pNcA-E", description: "Como usar a extratora em diferentes tecidos." }
+                      ]
+                  }
+              ]
+          },
+          // Outros cursos viriam aqui
+      };
+      
+      // --- LÓGICA DE CARREGAMENTO DA PÁGINA ---
+      const courseTitleEl = document.getElementById('course-title');
+      const moduleListEl = document.getElementById('course-outline');
+      const videoPlayer = document.getElementById('video-player');
+      const lessonTitleEl = document.getElementById('current-lesson-title');
+      const moduleTitleEl = document.getElementById('current-module-title');
+      const lessonDescriptionEl = document.getElementById('current-lesson-description');
+
+      // 1. Proteção de Login
       auth.onAuthStateChanged((user) => {
         if (!user) {
           window.location.href = 'login.html';
         }
       });
+      
+      // 2. Carregar o curso
+      document.addEventListener('DOMContentLoaded', () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId');
+          
+          if (!courseId || !coursesDB[courseId]) {
+              alert("Erro: Curso não encontrado!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          const course = coursesDB[courseId];
+          courseTitleEl.textContent = course.title;
+          
+          // 3. Renderizar a Sidebar de Módulos
+          course.modules.forEach(module => {
+              const moduleEl = document.createElement('li');
+              moduleEl.innerHTML = `<h3>${module.title}</h3>`;
+              
+              module.lessons.forEach(lesson => {
+                  const lessonEl = document.createElement('div');
+                  lessonEl.className = 'lesson-item';
+                  lessonEl.dataset.videoId = lesson.videoId;
+                  lessonEl.dataset.title = lesson.title;
+                  lessonEl.dataset.module = module.title;
+                  lessonEl.dataset.description = lesson.description;
+                  
+                  lessonEl.innerHTML = `
+                      <span>${lesson.title}</span>
+                      <span class="status-icon"><i class="fas fa-play"></i></span>
+                  `;
+                  
+                  // Adiciona o Event Listener para trocar o vídeo
+                  lessonEl.addEventListener('click', () => loadLesson(lessonEl));
+                  
+                  moduleEl.appendChild(lessonEl);
+              });
+              
+              moduleListEl.appendChild(moduleEl);
+          });
+          
+          // 4. Carregar a primeira aula por padrão
+          const firstLesson = document.querySelector('.lesson-item');
+          if (firstLesson) {
+              loadLesson(firstLesson);
+          }
+      });
+      
+      // 5. Função para Carregar a Aula
+      function loadLesson(lessonElement) {
+          // Remove a classe ativa de todos
+          document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+          
+          // Adiciona a classe ativa no clicado
+          lessonElement.classList.add('active');
+          
+          // Pega os dados do HTML (data- attributes)
+          const videoId = lessonElement.dataset.videoId;
+          const title = lessonElement.dataset.title;
+          const moduleTitle = lessonElement.dataset.module;
+          const description = lessonElement.dataset.description;
+          
+          // Atualiza o player e os detalhes
+          videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          lessonTitleEl.textContent = title;
+          moduleTitleEl.textContent = moduleTitle;
+          lessonDescriptionEl.textContent = description;
+      }
+      
     </script>
 </body>
 </html>
