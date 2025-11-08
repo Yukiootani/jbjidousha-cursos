@@ -63,11 +63,7 @@
         }
         .lesson-details h1 { font-size: 2em; font-weight: 700; }
         .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
-        .navigation-buttons { 
-            margin-top: 20px; /* Adiciona espaço */
-            padding-top: 20px; /* Adiciona espaço */
-            border-top: 1px solid var(--border-color); 
-        }
+        .navigation-buttons { border-top: 1px solid var(--border-color); }
         .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
         .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
         .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
@@ -87,4 +83,190 @@
         .module-list { list-style: none; padding: 0; margin: 0; }
         .module-list h3 { border-top: 1px solid var(--border-color); padding-top: 15px; }
         .lesson-item {
-            padding: 10
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lesson-item.active {
+            background-color: #e9ecef; 
+            color: var(--action-color);
+            border-left: 4px solid var(--accent-color); /* Destaque DOURADO */
+            font-weight: bold;
+        }
+        .lesson-item:hover { background-color: #f0f0f0; }
+        
+        @media (min-width: 1024px) {
+            .platform-container { flex-direction: row; }
+            .main-content { flex: 2; padding: 20px 20px 20px 0; }
+            .sidebar {
+                width: 350px; min-width: 350px; height: 100vh; overflow-y: auto;
+                order: 2; padding: 20px; border-left: 1px solid var(--border-color);
+                border-top: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <h1 id="course-title">Carregando Curso...</h1>
+        <a href="index.html">← Voltar ao Dashboard</a>
+    </div>
+
+    <div class="platform-container">
+
+        <div class="main-content">
+            
+            <div class="video-player-container">
+                <iframe id="video-player"
+                    src="" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="lesson-details">
+                <p class="module-title" id="current-module-title">Módulo...</p>
+                <h1 id="current-lesson-title">Carregando Aula...</h1>
+                <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
+
+                <div class="navigation-buttons">
+                    <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
+                    <button id="next-lesson-btn">Próxima Aula →</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>Conteúdo do Curso</h2>
+            <ul id="course-outline" class="module-list">
+                </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+
+    <script>
+      // 🔑 SUAS CHAVES REAIS
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
+        authDomain: "jb-jidousha-curso.firebaseapp.com",
+        projectId: "jb-jidousha-curso",
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth(); 
+      
+      // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
+      const coursesDB = {
+          "curso_higienizacao": {
+              title: "Curso de Higienização Profissional",
+              modules: [
+                  {
+                      title: "Módulo 1: Fundamentos",
+                      lessons: [
+                          { id: "L01", title: "1.1. Segurança e Produtos", videoId: "dQw4w9WgXcQ", description: "Aprenda sobre EPIs e diluição correta dos produtos." },
+                          { id: "L02", title: "1.2. Limpeza de Painel e Forro", videoId: "b66r_M-o72g", description: "Técnicas de limpeza a seco e com vapor." }
+                      ]
+                  },
+                  {
+                      title: "Módulo 2: O Estofamento",
+                      lessons: [
+                          { id: "L03", title: "2.1. Técnicas de Extração", videoId: "R2-43pNcA-E", description: "Como usar a extratora em diferentes tecidos." }
+                      ]
+                  }
+              ]
+          },
+      };
+      
+      // --- ELEMENTOS DO HTML ---
+      const courseTitleEl = document.getElementById('course-title');
+      const moduleListEl = document.getElementById('course-outline');
+      const videoPlayer = document.getElementById('video-player');
+      const lessonTitleEl = document.getElementById('current-lesson-title');
+      const moduleTitleEl = document.getElementById('current-module-title');
+      const lessonDescriptionEl = document.getElementById('current-lesson-description');
+
+      // 1. Proteção de Login
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        } else {
+            // Se o usuário estiver logado, inicializa a página
+            initializePage(user);
+        }
+      });
+      
+      // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+      function initializePage(user) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId') || "curso_higienizacao"; // Pega o ID da URL ou usa o padrão
+          
+          if (!courseId || !coursesDB[courseId]) {
+              alert("Erro: Curso não encontrado!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          const course = coursesDB[courseId];
+          courseTitleEl.textContent = course.title;
+          
+          // Renderiza a Sidebar
+          course.modules.forEach(module => {
+              const moduleEl = document.createElement('li');
+              moduleEl.innerHTML = `<h3>${module.title}</h3>`;
+              
+              module.lessons.forEach(lesson => {
+                  const lessonEl = document.createElement('div');
+                  lessonEl.className = 'lesson-item';
+                  lessonEl.dataset.videoId = lesson.videoId;
+                  lessonEl.dataset.title = lesson.title;
+                  lessonEl.dataset.module = module.title;
+                  lessonEl.dataset.description = lesson.description;
+                  
+                  lessonEl.innerHTML = `
+                      <span>${lesson.title}</span>
+                      <span class="status-icon"><i class="fas fa-play"></i></span>
+                  `;
+                  
+                  lessonEl.addEventListener('click', () => loadLesson(lessonEl));
+                  moduleEl.appendChild(lessonEl);
+              });
+              
+              moduleListEl.appendChild(moduleEl);
+          });
+          
+          // Carrega a primeira aula por padrão
+          const firstLesson = document.querySelector('.lesson-item');
+          if (firstLesson) {
+              loadLesson(firstLesson);
+          }
+      }
+
+      // Função para Carregar a Aula
+      function loadLesson(lessonElement) {
+          document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+          lessonElement.classList.add('active');
+          
+          const videoId = lessonElement.dataset.videoId;
+          
+          videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          lessonTitleEl.textContent = lessonElement.dataset.title;
+          moduleTitleEl.textContent = lessonElement.dataset.module;
+          lessonDescriptionEl.textContent = lessonElement.dataset.description;
+      }
+      
+    </script>
+</body>
+</html>
