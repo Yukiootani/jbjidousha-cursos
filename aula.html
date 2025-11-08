@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula | JB Jidousha Cursos</title>
+    
+    <style>
+        /* Paleta de Cores Estilo Premium (Branco, Preto, Dourado) */
+        :root {
+            --bg-color: #f7f7f7; 
+            --content-bg: #FFFFFF; 
+            --main-text: #333333; 
+            --light-text: #6c757d; 
+            --accent-color: #DAA520; 
+            --action-color: #333333; /* PRETO (Botões) */
+            --border-color: #e9ecef; 
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Bar - Header Superior */
+        .top-bar {
+            background-color: var(--content-bg);
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--accent-color); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
+        .top-bar a {
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* Estrutura Principal */
+        .platform-container {
+            display: flex;
+            flex-direction: column; 
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 1. Área do Conteúdo Principal (VÍDEO) */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background-color: var(--content-bg);
+        }
+
+        /* Player de Vídeo */
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background-color: #000;
+        }
+        #video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Detalhes da Aula e Botões */
+        .lesson-details h1 { font-size: 2em; font-weight: 700; }
+        .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
+        .navigation-buttons { border-top: 1px solid var(--border-color); }
+        .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
+        .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
+
+
+        /* 2. Sidebar (Lista de Aulas) */
+        .sidebar {
+            width: 100%; 
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .sidebar h2 {
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color); /* Linha DOURADA */
+            color: var(--main-text);
+            font-weight: bold;
+        }
+        .module-list { list-style: none; padding: 0; margin: 0; }
+        .module-list h3 { border-top: 1px solid var(--border-color); }
+        .lesson-item.active {
+            background-color: #e9ecef; 
+            color: var(--action-color);
+            border-left: 4px solid var(--accent-color); /* Destaque DOURADO */
+        }
+        .lesson-item:hover { background-color: #f0f0f0; }
+        .lesson-item .status-icon.completed { color: var(--accent-color); }
+
+        /* Responsividade (Desktop) */
+        @media (min-width: 1024px) {
+            .platform-container { flex-direction: row; }
+            .main-content { flex: 2; padding: 20px 20px 20px 0; }
+            .sidebar {
+                width: 350px; min-width: 350px; height: 100vh; overflow-y: auto;
+                order: 2; padding: 20px; border-left: 1px solid var(--border-color);
+                border-top: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <h1>JB JIDOUSHA CURSOS</h1>
+        <a href="index.html">← Voltar ao Dashboard</a>
+    </div>
+
+    <div class="platform-container">
+
+        <div class="main-content">
+            
+            <div class="video-player-container">
+                <iframe id="video-player"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="lesson-details">
+                <p class="module-title" id="current-module-title">Módulo 1: Higienização e Produtos</p>
+                <h1 id="current-lesson-title">Aula 1: Segurança e Produtos Químicos</h1>
+                
+                <p id="current-lesson-description">
+                    Este é o início do seu treinamento profissional em Higienização Automotiva.
+                </p>
+
+                <div class="navigation-buttons">
+                    <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
+                    <button id="next-lesson-btn">Próxima Aula →</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>Conteúdo do Curso</h2>
+            <ul id="course-outline" class="module-list">
+                <li id="module-1">
+                    <h3>Módulo 1: Fundamentos</h3>
+                    <div class="lesson-item active" data-video-url="dQw4w9WgXcQ">
+                        <span>1.1. Segurança e Produtos</span>
+                        <span class="status-icon">▶</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+
+    <script>
+      // 🔑 SUAS CHAVES REAIS
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
+        authDomain: "jb-jidousha-curso.firebaseapp.com",
+        projectId: "jb-jidousha-curso",
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth(); 
+      
+      // PROTEÇÃO CRÍTICA
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        }
+      });
+    </script>
+</body>
+</html>
