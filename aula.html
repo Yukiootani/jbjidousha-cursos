@@ -287,10 +287,8 @@
           const course = coursesDB[currentCourseId];
           courseTitleEl.textContent = course.title;
           
-          // Carrega o progresso ANTES de renderizar a sidebar
           await loadUserProgress(currentUser.uid);
           
-          // Limpa a lista de aulas e a lista plana
           moduleListEl.innerHTML = '';
           flatLessonList = [];
           
@@ -369,7 +367,7 @@
           lessonElement.classList.add('active');
           
           currentLessonId = lessonElement.dataset.lessonId; 
-          currentLessonIndex = flatLessonList.indexOf(lessonElement); // Atualiza o índice atual
+          currentLessonIndex = flatLessonList.indexOf(lessonElement); 
           
           videoPlayer.src = `https://www.youtube.com/embed/${lessonElement.dataset.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = lessonElement.dataset.title;
@@ -377,15 +375,29 @@
           lessonDescriptionEl.textContent = lessonElement.dataset.description;
           
           checkCurrentLessonStatus();
-          updateNavigationButtons(); // Atualiza botões "Próxima/Anterior"
+          updateNavigationButtons(); 
       }
       
-      // Função para Marcar Aula como Concluída (Salvando no Firebase)
+      // Função para Marcar Aula como Concluída (COM DEBUG DE ALERTA)
       async function markLessonAsCompleted() {
-          if (!currentUser || !currentCourseId || !currentLessonId) {
-              alert("Erro: Não foi possível salvar o progresso. (Usuário ou Aula não encontrados)");
+          
+          // DEBUG 1: O clique foi registado?
+          alert("DEBUG V7: Botão 'Concluída' clicado.");
+          
+          if (!currentUser) {
+              alert("DEBUG V7: ERRO! O 'currentUser' (ID do Aluno) está NULO. O login falhou ou o timing está errado.");
               return;
           }
+          if (!currentCourseId) {
+              alert("DEBUG V7: ERRO! 'currentCourseId' está NULO.");
+              return;
+          }
+          if (!currentLessonId) {
+              alert("DEBUG V7: ERRO! 'currentLessonId' está NULO.");
+              return;
+          }
+          
+          alert("DEBUG V7: Verificação passada. A salvar: Aluno: " + currentUser.uid + " Aula: " + currentLessonId);
           
           completeLessonBtn.disabled = true;
           completeLessonBtn.textContent = "Salvando...";
@@ -404,11 +416,10 @@
               if (activeLessonEl) {
                   activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
               }
-              console.log("Progresso salvo no Firebase!");
+              alert("DEBUG V7: Progresso salvo no Firebase!");
 
           } catch (error) {
-              console.error("Erro ao salvar progresso:", error);
-              alert("Erro ao salvar seu progresso. Verifique sua conexão e tente novamente.");
+              alert("DEBUG V7: ERRO AO SALVAR! " + error.message);
               
               userProgress[currentLessonId] = false; 
               completeLessonBtn.disabled = false; 
