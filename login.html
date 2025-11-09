@@ -34,7 +34,7 @@
         </form>
         <p id="error-message"></p>
         <div class="register-link">
-            Não tem conta? <a href="registro.html">Registe-se aqui</a>
+            Não tem conta? <a href="registrar.html">Registe-se aqui</a>
         </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -60,14 +60,14 @@
         errorMessage.textContent = ''; 
         try {
           await auth.signInWithEmailAndPassword(email, password);
-          window.location.href = 'dashboard.html'; // CORRIGIDO
+          window.location.href = 'index.html'; // Redireciona para o Dashboard
         } catch (error) {
           errorMessage.textContent = 'E-mail ou senha inválidos.';
         }
       });
       auth.onAuthStateChanged((user) => {
         if (user) {
-          window.location.href = 'dashboard.html'; // CORRIGIDO
+          window.location.href = 'index.html'; // Se já logado, vai para o Dashboard
         }
       });
     </script>
