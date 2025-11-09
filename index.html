@@ -64,7 +64,9 @@
             -webkit-overflow-scrolling: touch;
             padding: 0 0 20px 0; 
             gap: 20px;
+            min-height: 100px; /* Garante que o container apareça mesmo se vazio */
         }
+        
         .course-card {
             flex: 0 0 auto; 
             width: 300px; 
@@ -142,30 +144,7 @@
             margin-bottom: 30px;
             border-left: 5px solid var(--accent-color); 
         }
-        .progress-bar-container {
-            height: 10px;
-            background-color: var(--border-color);
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            width: 0%; 
-            background-color: var(--action-color); 
-            border-radius: 5px;
-            transition: width 0.5s ease; /* Animação da barra */
-        }
-        .item-button {
-            background-color: var(--action-color);
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            margin-top: 10px;
-        }
+        
     </style>
 </head>
 <body>
@@ -173,15 +152,12 @@
     <div class="top-bar">
         <div class="logo-container">
             <img src="https://artebrasil.jp/wp-content/uploads/2024/02/Midia-1-654D52D1-1AAC-49EB-9596-CFEBD3F04B96.jpg" alt="JB Jidousha Logo" class="header-logo">
-            <h1>JB JIDOUSHA CURSOS</h1>
+            <h1 id="welcome-title">JB JIDOUSHA CURSOS</h1>
         </div>
         <button id="logout-btn">Sair</button>
     </div>
 
     <div class="dashboard-container">
-
-        <div id="progress-card-container">
-            </div>
 
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
@@ -195,7 +171,19 @@
 
         <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
         <div class="horizontal-scroll-container" id="tools-carousel">
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
+                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
+                </div>
             </div>
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
+                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -219,26 +207,24 @@
       const auth = firebase.auth(); 
       const db = firebase.firestore();
       
-      // --- DADOS DE EXEMPLO (APENAS FERRAMENTAS) ---
-      const allTools = [
-          { id: "pdf_fornecedores", title: "Fornecedores JP/BR (PDF)", subtitle: "Documento exclusivo com contato e código de desconto.", link: "#", icon: "fa-file-pdf", buttonText: "Baixar PDF" },
-          { id: "planilha_lucro", title: "Planilha de Lucro", subtitle: "Calcule o rendimento por serviço de higienização.", link: "#", icon: "fa-calculator", buttonText: "Baixar Planilha" },
-          { id: "suporte_whatsapp", title: "Suporte VIP", subtitle: "Fale com um especialista para dúvidas técnicas.", link: "#", icon: "fa-whatsapp", buttonText: "Acessar Suporte" }
-      ];
-
       // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
       
       document.addEventListener('DOMContentLoaded', () => {
+          
           auth.onAuthStateChanged(async (user) => {
             if (!user) {
               window.location.href = 'login.html';
             } else {
               console.log("Usuário logado:", user.uid);
+              // Tenta buscar o perfil real do aluno
               const userProfile = await getUserProfile(user.uid);
-              if (userProfile) {
+              
+              if(userProfile) {
+                  // Se encontrou o perfil, carrega o dashboard
                   loadDashboard(user, userProfile); 
               } else {
-                  // Se o perfil não for encontrado (raro), desloga
+                  // Se não encontrou (erro de permissão ou perfil não existe)
+                  alert("Erro ao carregar seu perfil. Fazendo logout.");
                   auth.signOut();
               }
             }
@@ -255,137 +241,71 @@
 
       // ATUALIZADO: Função para carregar o Dashboard (LENDO DO FIRESTORE)
       async function loadDashboard(currentUser, userProfile) {
-          const progressContainer = document.getElementById('progress-card-container');
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
-          const toolsCarousel = document.getElementById('tools-carousel');
+          const welcomeTitle = document.getElementById('welcome-title');
           
+          // Personaliza o "Bem-vindo"
+          welcomeTitle.textContent = `Bem-vindo(a), ${userProfile.name}!`;
+          
+          // Limpa os carrosséis
           myCoursesCarousel.innerHTML = '';
           catalogCarousel.innerHTML = '';
-          toolsCarousel.innerHTML = '';
-          
-          let overallProgressPercent = 0;
-          let overallProgressText = "Nenhum progresso ainda.";
-          let courseFound = false; 
-          
-          // 1. Renderizar Carrosséis
-          // Busca TODOS os cursos do banco de dados
-          const coursesSnapshot = await db.collection("cursos").get();
-
-          for (const doc of coursesSnapshot.docs) {
-              const course = doc.data();
-              const courseId = doc.id; // Este é o ID que você definiu (ex: 'curso_polimento')
-              
-              // Verifica se o aluno possui o curso (lendo do perfil real)
-              if (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId)) {
-                  
-                  // Calcular o progresso real
-                  const progressData = await getUserProgress(currentUser.uid, courseId);
-                  // Precisamos saber o total de aulas deste curso (do documento do curso)
-                  const totalLessons = course.totalLessons || 1; // Pega o total salvo, ou 1 para evitar divisão por zero
-                  const completedCount = progressData.completedCount;
-                  let progressPercent = 0;
-                  
-                  if (totalLessons > 0) {
-                      progressPercent = Math.round((completedCount / totalLessons) * 100);
-                  }
-                  
-                  if (!courseFound) { // Pega o progresso do primeiro curso
-                      overallProgressPercent = progressPercent;
-                      overallProgressText = `Seu progresso no curso "${course.title}":`;
-                      courseFound = true;
-                  }
-
-                  // Adiciona em "Meus Cursos"
-                  myCoursesCarousel.innerHTML += `
-                      <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
-                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                          <div class="card-content">
-                              <div class="card-title">${course.title}</div>
-                              <div class="card-subtitle">${course.subtitle}</div>
-                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">${progressPercent}% Concluído</p>
-                          </div>
-                      </div>
-                  `;
-              } else {
-                  // Adiciona no "Catálogo" com cadeado
-                  catalogCarousel.innerHTML += `
-                      <div class="course-card">
-                          <div class="lock-overlay">
-                              <i class="fas fa-lock"></i>
-                              ${course.title}
-                              <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
-                          </div>
-                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                          <div class="card-content">
-                              <div class="card-title">${course.title}</div>
-                              <div class="card-subtitle">${course.subtitle}</div>
-                          </div>
-                      </div>
-                  `;
-              }
-          }
-          
-          // 2. Renderizar Cartão de Progresso (Com nome real)
-          progressContainer.innerHTML = `
-              <div class="progress-card">
-                  <h2>Bem-vindo(a), ${userProfile.name}!</h2>
-                  <p style="color:var(--light-text);">${overallProgressText}</p>
-                  <div class="progress-bar-container">
-                      <div class="progress-bar" style="width: ${overallProgressPercent}%;"></div>
-                  </div>
-                  <p style="margin-top:15px;"><a href="aula.html?courseId=curso_higienizacao" style="color:var(--action-color); font-weight:bold;">Continuar assistindo</a></p>
-              </div>
-          `;
-          
-          // 3. Renderizar Ferramentas
-          allTools.forEach(tool => {
-              toolsCarousel.innerHTML += `
-                  <div class="course-card" style="min-height: 150px;" onclick="window.location.href='${tool.link}'">
-                      <div class="card-content">
-                          <div class="card-title" style="color: var(--accent-color);"><i class="fas ${tool.icon}"></i> ${tool.title}</div>
-                          <div class="card-subtitle">${tool.subtitle}</div>
-                          <button class="item-button" style="background-color: var(--accent-color); color: var(--main-text);">${tool.buttonText}</button>
-                      </div>
-                  </div>
-              `;
-          });
-      }
-      
-      // 4. Função Helper para buscar o PERFIL do aluno
-      async function getUserProfile(userId) {
-          const userDoc = await db.collection('users').doc(userId).get();
-          if (userDoc.exists) {
-              return userDoc.data(); // Retorna { name: "Nome Real", email: "...", coursesOwned: [] }
-          } else {
-              // Se o admin logar (e não tiver perfil 'users'), cria um perfil de admin 'falso'
-              if(userId === "YVFrEAs90X9b66u9ahQu3tMz212") { // Substitua pelo SEU ID de Admin
-                   return { name: "Admin JB", coursesOwned: ["curso_higienizacao"] }; // Admin vê tudo
-              }
-              return { name: "Novo Aluno", coursesOwned: [] };
-          }
-      }
-      
-      // 5. Função Helper para buscar o PROGRESSO
-      async function getUserProgress(userId, courseId) {
-          const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
           
           try {
-              const doc = await progressRef.get();
+              // 1. Busca TODOS os cursos do banco de dados
+              const coursesSnapshot = await db.collection("cursos").get();
               
-              if (doc.exists) {
-                  const completedLessons = doc.data().completedLessons || {};
-                  const completedCount = Object.keys(completedLessons).length;
-                  return { completedCount: completedCount, completedLessons: completedLessons };
-              } else {
-                  return { completedCount: 0, completedLessons: {} };
+              if (coursesSnapshot.empty) {
+                  myCoursesCarousel.innerHTML = '<p>Nenhum curso cadastrado ainda.</p>';
+                  return;
               }
+
+              coursesSnapshot.forEach(doc => {
+                  const course = doc.data();
+                  const courseId = doc.id; // ID que você definiu (ex: 'curso_polimento')
+                  
+                  // Verifica se o aluno possui o curso (lendo do perfil real)
+                  // (Vamos assumir que o admin (você) tem acesso a tudo por enquanto)
+                  // (E que o aluno novo não tem acesso a nada)
+                  const isOwned = userProfile.isAdmin || (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId));
+
+                  if (isOwned) {
+                      // Adiciona em "Meus Cursos"
+                      myCoursesCarousel.innerHTML += `
+                          <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                                  <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
+                              </div>
+                          </div>
+                      `;
+                  } else {
+                      // Adiciona no "Catálogo" com cadeado
+                      catalogCarousel.innerHTML += `
+                          <div class="course-card">
+                              <div class="lock-overlay">
+                                  <i class="fas fa-lock"></i>
+                                  ${course.title}
+                                  <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
+                              </div>
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                              </div>
+                          </div>
+                      `;
+                  }
+              });
+
           } catch (error) {
-              console.error("Erro ao LER progresso:", error);
-              return { completedCount: 0, completedLessons: {} };
+              console.error("Erro ao carregar cursos:", error);
+              myCoursesCarousel.innerHTML = `<p style="color:red;">Erro ao carregar cursos. Verifique as Regras do Firebase.</p>`;
           }
       }
       
-    </script>
-</body>
-</html>
+      // Função Helper para buscar o PERFIL do aluno
+      async function getUserProfile(
