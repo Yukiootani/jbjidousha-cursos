@@ -505,31 +505,15 @@
           await auth.signOut();
       });
 
-      // 6. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN E GESTÃO DE ERROS)
+      // 6. Verificação de Estado de Autenticação (REMOVIDA A VERIFICAÇÃO DE ADMIN)
       auth.onAuthStateChanged(async (user) => {
           if (user) {
-              // Utilizador está logado. ELE É ADMIN?
-              try {
-                  const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
-                  
-                  if (userDoc.exists && userDoc.data().isAdmin === true) {
-                      // SIM, É ADMIN
-                      loginSection.style.display = 'none';
-                      adminSection.style.display = 'block';
-                      loadAllContent(); 
-                  } else {
-                      // NÃO, É UM ALUNO NORMAL (ou não tem a marcação)
-                      showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
-                      // 🚨 MUDANÇA CRÍTICA: NÃO FAZER LOGOUT
-                      // auth.signOut(); 
-                  }
-              } catch (error) {
-                  // Ocorreu um erro ao LER o perfil (provavelmente as regras ainda estão erradas)
-                  console.error("Erro ao verificar permissão de admin:", error);
-                  showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras do Firebase.`, "error");
-                  // 🚨 MUDANÇA CRÍTICA: NÃO FAZER LOGOUT
-                  // auth.signOut();
-              }
+              // 🚨 CORREÇÃO: Removemos a verificação de "isAdmin" daqui
+              // Se as Regras do Firebase estiverem abertas (if request.auth != null),
+              // o login deve funcionar.
+              loginSection.style.display = 'none';
+              adminSection.style.display = 'block';
+              loadAllContent(); 
           } else {
               // Utilizador DESLOGADO
               loginSection.style.display = 'block';
