@@ -119,16 +119,12 @@
             <form id="formCurso">
                 <label for="course-id">ID Único do Curso (sem espaços):</label>
                 <input type="text" id="course-id" placeholder="Ex: curso_higienizacao_v1" required>
-                
                 <label for="course-title">Título do Curso:</label>
                 <input type="text" id="course-title" placeholder="Ex: Higienização Profissional" required>
-                
                 <label for="course-subtitle">Subtítulo (Descrição Curta):</label>
                 <input type="text" id="course-subtitle" placeholder="O ponto de partida para a sua nova profissão." required>
-                
                 <label for="course-icon">Ícone (FontAwesome):</label>
                 <input type="text" id="course-icon" placeholder="Ex: fa-car-wash" required>
-
                 <button type="submit">Salvar Novo Curso</button>
             </form>
             
@@ -140,13 +136,10 @@
                 <select id="module-course" required>
                     <option value="">-- Carregando Cursos... --</option>
                 </select>
-                
                 <label for="module-title">Título do Módulo:</label>
                 <input type="text" id="module-title" placeholder="Ex: Módulo 1: Fundamentos" required>
-                
                 <label for="module-order">Ordem (Número):</label>
                 <input type="number" id="module-order" placeholder="1" required>
-                
                 <button type="submit">Salvar Módulo</button>
             </form>
             
@@ -154,32 +147,35 @@
             
             <form id="formAula">
                 <h3>3. Adicionar Nova Aula</h3>
-                
                 <label for="lesson-course-select">Selecionar Curso (para filtrar módulos):</label>
                 <select id="lesson-course-select" required>
                     <option value="">-- Carregando Cursos... --</option>
                 </select>
-
                 <label for="lesson-module">Selecionar Módulo:</label>
                 <select id="lesson-module" required>
                     <option value="">-- Selecione um curso primeiro --</option>
                 </select>
-                
                 <label for="lesson-title">Título da Aula:</label>
                 <input type="text" id="lesson-title" placeholder="Ex: 1.1 Segurança e Produtos" required>
-                
                 <label for="lesson-videoid">ID do Vídeo (YouTube):</label>
                 <input type="text" id="lesson-videoid" placeholder="Ex: iWiE3_bToUk" required>
-                
                 <label for="lesson-description">Descrição Curta:</label>
                 <textarea id="lesson-description" rows="3" placeholder="O que o aluno vai aprender..."></textarea>
-                
                 <label for="lesson-order">Ordem (Número):</label>
                 <input type="number" id="lesson-order" placeholder="1" required>
-
                 <button type="submit" id="btnSalvarAula">Salvar Aula</button>
             </form>
             
+            <hr style="margin: 30px 0;">
+            
+            <h3>4. Gerir Cursos Padrão (para Novos Alunos)</h3>
+            <form id="formDefaultCourses">
+                <label for="default-courses">IDs dos Cursos Padrão (separados por vírgula):</label>
+                <input type="text" id="default-courses" placeholder="Ex: curso_higienizacao,curso_polimento">
+                <p style="font-size: 0.8em; color: #666; margin-top: -10px;">O(s) curso(s) que novos alunos recebem ao se registar.</p>
+                <button type="submit">Salvar Cursos Padrão</button>
+            </form>
+
             <hr style="margin: 30px 0;">
             
             <h3>Conteúdo Atual da Plataforma</h3>
@@ -216,6 +212,7 @@
       const MODULOS_COLLECTION = "modulos";
       const AULAS_COLLECTION = "aulas";
       const USERS_COLLECTION = "users";
+      const CONFIG_COLLECTION = "configuracoes"; // NOVO
 
       // Elementos do HTML
       const loginSection = document.getElementById('login-section');
@@ -228,12 +225,14 @@
       const formCurso = document.getElementById('formCurso');
       const formModulo = document.getElementById('formModulo');
       const formAula = document.getElementById('formAula');
+      const formDefaultCourses = document.getElementById('formDefaultCourses'); // NOVO
       
       const selectCourseInModuloForm = document.getElementById('module-course'); // Form 2
       const selectCourseInAulaForm = document.getElementById('lesson-course-select'); // Form 3
       const selectModuleInAulaForm = document.getElementById('lesson-module'); // Form 3
       
       const contentListDiv = document.getElementById('content-list');
+      const defaultCoursesInput = document.getElementById('default-courses'); // NOVO
 
       let cacheCursos = []; 
       let cacheModulos = []; 
@@ -246,7 +245,7 @@
       // --- LÓGICA DE CARREGAMENTO ---
 
       async function loadAllContent() {
-          // Limpa todos os menus
+          // Limpa menus e lista
           selectCourseInModuloForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
           selectCourseInAulaForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
           selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>'; 
@@ -262,7 +261,6 @@
                   const course = doc.data();
                   course.id = doc.id;
                   cacheCursos.push(course);
-                  // Popula AMBOS os dropdowns de curso (Form 2 e Form 3)
                   selectCourseInModuloForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
                   selectCourseInAulaForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
               });
@@ -289,6 +287,13 @@
               
               // 4. Renderizar a Lista Completa
               renderContentList(cacheCursos, cacheModulos, allLessons);
+              
+              // 5. NOVO: Buscar os Cursos Padrão
+              const configDoc = await db.collection(CONFIG_COLLECTION).doc('default_courses').get();
+              if (configDoc.exists) {
+                  // O .join() transforma o array ['curso1', 'curso2'] em "curso1,curso2"
+                  defaultCoursesInput.value = (configDoc.data().coursesOwned || []).join(',');
+              }
 
           } catch (error) {
               console.error("Erro ao carregar conteúdo:", error);
@@ -394,3 +399,160 @@
           
           if (modulosDoCurso.length === 0) {
               selectModuleInAulaForm.innerHTML = '<option value="">-- Nenhum módulo para este curso --</option>';
+          }
+
+          // Adiciona os módulos filtrados ao dropdown
+          modulosDoCurso.forEach(modulo => {
+              selectModuleInAulaForm.innerHTML += `<option value="${modulo.id}">${modulo.title}</option>`;
+          });
+      }
+
+
+      // 1. Salvar Curso
+      formCurso.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const courseId = document.getElementById('course-id').value; // Pega o ID manual
+          const title = document.getElementById('course-title').value;
+          const subtitle = document.getElementById('course-subtitle').value;
+          const icon = document.getElementById('course-icon').value;
+          
+          if (!courseId) {
+              showStatus(statusDiv, "Erro: O ID Único do Curso é obrigatório.", "error");
+              return;
+          }
+          
+          try {
+              await db.collection(CURSOS_COLLECTION).doc(courseId).set({
+                  title: title,
+                  subtitle: subtitle,
+                  icon: icon
+              });
+              showStatus(statusDiv, "Curso salvo com sucesso!", "success");
+              formCurso.reset();
+              loadAllContent(); // Recarrega tudo
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao salvar curso: " + error.message, "error");
+          }
+      });
+      
+      // 2. Salvar Módulo
+      formModulo.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const courseId = document.getElementById('module-course').value;
+          const title = document.getElementById('module-title').value;
+          const order = parseInt(document.getElementById('module-order').value);
+          
+          if (!courseId) {
+              showStatus(statusDiv, "Erro: Selecione um curso.", "error");
+              return;
+          }
+          
+          try {
+              await db.collection(MODULOS_COLLECTION).add({
+                  courseId: courseId,
+                  title: title,
+                  order: order
+              });
+              showStatus(statusDiv, "Módulo salvo com sucesso!", "success");
+              formModulo.reset();
+              loadAllContent(); 
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao salvar módulo: " + error.message, "error");
+          }
+      });
+      
+      // 3. Salvar Aula
+      formAula.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const moduleId = document.getElementById('lesson-module').value; // Corrigido
+          const title = document.getElementById('lesson-title').value;
+          const videoId = document.getElementById('lesson-videoid').value;
+          const description = document.getElementById('lesson-description').value;
+          const order = parseInt(document.getElementById('lesson-order').value);
+
+          if (!moduleId) {
+              showStatus(statusDiv, "Erro: Selecione um módulo.", "error");
+              return;
+          }
+
+          try {
+              await db.collection(AULAS_COLLECTION).add({
+                  moduleId: moduleId,
+                  title: title,
+                  videoId: videoId,
+                  description: description,
+                  order: order
+              });
+              showStatus(statusDiv, "Aula salva com sucesso!", "success");
+              formAula.reset();
+              loadAllContent(); 
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao salvar aula: " + error.message, "error");
+          }
+      });
+      
+      // 4. NOVO: Salvar Cursos Padrão
+      formDefaultCourses.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const idsString = defaultCoursesInput.value; // Ex: "curso1,curso2"
+          
+          // Converte a string "curso1,curso2" num array ["curso1", "curso2"]
+          const coursesArray = idsString.split(',').map(id => id.trim()).filter(id => id.length > 0);
+          
+          try {
+              // Salva este array num documento específico
+              await db.collection(CONFIG_COLLECTION).doc('default_courses').set({
+                  coursesOwned: coursesArray
+              });
+              showStatus(statusDiv, "Lista de Cursos Padrão salva!", "success");
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao salvar lista: " + error.message, "error");
+          }
+      });
+
+      // 5. Lógica de Login
+      loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('login-email').value;
+          const password = document.getElementById('login-password').value;
+          showStatus(loginStatusDiv, 'Tentando entrar...', 'loading');
+          try {
+              await auth.signInWithEmailAndPassword(email, password);
+          } catch (error) {
+              showStatus(loginStatusDiv, `Erro de Acesso: ${error.message}`, 'error');
+          }
+      });
+
+      // 6. Lógica de Logout
+      btnLogout.addEventListener('click', async () => {
+          await auth.signOut();
+      });
+
+      // 7. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN)
+      auth.onAuthStateChanged(async (user) => {
+          if (user) {
+              try {
+                  const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
+                  if (userDoc.exists && userDoc.data().isAdmin === true) {
+                      loginSection.style.display = 'none';
+                      adminSection.style.display = 'block';
+                      loadAllContent(); 
+                  } else {
+                      showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
+                      auth.signOut(); 
+                  }
+              } catch (error) {
+                  console.error("Erro ao verificar permissão de admin:", error);
+                  showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras do Firebase.`, "error");
+                  auth.signOut();
+              }
+          } else {
+              loginSection.style.display = 'block';
+              adminSection.style.display = 'none';
+          }
+      });
+        
+    </script>
+
+</body>
+</html>
