@@ -510,13 +510,15 @@
                   } else {
                       // NÃO, É UM ALUNO NORMAL (ou não tem a marcação)
                       showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
-                      auth.signOut();
+                      // 🚨 MUDANÇA CRÍTICA: NÃO FAZER LOGOUT
+                      // auth.signOut(); 
                   }
               } catch (error) {
                   // Ocorreu um erro ao LER o perfil (provavelmente as regras ainda estão erradas)
                   console.error("Erro ao verificar permissão de admin:", error);
                   showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras do Firebase.`, "error");
-                  auth.signOut();
+                  // 🚨 MUDANÇA CRÍTICA: NÃO FAZER LOGOUT
+                  // auth.signOut();
               }
           } else {
               // Utilizador DESLOGADO
