@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprar Curso | JB Jidousha Cursos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* Paleta de Cores Premium (Branco, Preto, Dourado) */
+        :root {
+            --bg-color: #f7f7f7; 
+            --content-bg: #FFFFFF; 
+            --main-text: #333333; 
+            --light-text: #6c757d; 
+            --accent-color: #DAA520; 
+            --action-color: #333333; /* PRETO (Botões) */
+            --border-color: #e9ecef; 
+        }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
+        .top-bar {
+            background-color: var(--content-bg);
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--accent-color); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
+        .top-bar a {
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .sales-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: var(--content-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 400px;
+            background-color: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sales-title {
+            font-size: 2.2em;
+            color: var(--action-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .sales-subtitle {
+            font-size: 1.2em;
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+        .sales-price {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .cta-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--accent-color);
+            color: var(--main-text);
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover { transform: scale(1.02); }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>JB JIDOUSHA CURSOS</h1>
+        <a href="index.html">← Voltar ao Catálogo</a>
+    </div>
+
+    <div class="sales-container">
+        
+        <div class="video-placeholder">
+            Vídeo de Vendas (Ex: Polimento)<br>
+            (Substituir pelo link do YouTube)
+        </div>
+
+        <h1 class="sales-title" id="course-title">Carregando Curso...</h1>
+        <p class="sales-subtitle" id="course-subtitle">Carregando detalhes...</p>
+        
+        <div class="sales-price" id="course-price">¥--</div>
+
+        <a href="checkout.html" id="checkout-link" class="cta-button">QUERO COMPRAR AGORA!</a>
+
+        <div class="course-description" style="margin-top: 30px;">
+            <h3>O que você vai aprender:</h3>
+            <ul id="course-learn-list">
+                </ul>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+
+    <script>
+      // 🔑 SUAS CHAVES REAIS
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
+        authDomain: "jb-jidousha-curso.firebaseapp.com",
+        projectId: "jb-jidousha-curso",
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      
+      // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
+      // (Em um projeto real, buscaríamos isso do Firestore)
+      const coursesDB = {
+          "curso_polimento_farol": {
+              title: "Polimento de Faróis",
+              subtitle: "Técnicas de restauração e vedação.",
+              price: "¥25,000",
+              learnList: [
+                  "Diagnosticar o nível de dano (Queimado vs. Riscado)",
+                  "Técnicas de lixamento manual e com máquina",
+                  "Escolha correta de compostos de polimento",
+                  "Aplicação de vitrificador UV para proteção"
+              ]
+          },
+          "curso_polimento_pintura": {
+              title: "Polimento de Pintura",
+              subtitle: "Remoção de riscos e vitrificação.",
+              price: "¥40,000",
+              learnList: [
+                  "Descontaminação da pintura (Clay bar)",
+                  "Mapeamento de riscos e setup de iluminação",
+                  "Etapas de Corte, Refino e Lustro",
+                  "Aplicação de Cera vs. Selante vs. Vitrificador"
+              ]
+          }
+      };
+      
+      // --- LÓGICA DE CARREGAMENTO DA PÁGINA ---
+      document.addEventListener('DOMContentLoaded', () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId');
+          
+          if (!courseId || !coursesDB[courseId]) {
+              alert("Erro: Curso não encontrado!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          const course = coursesDB[courseId];
+          
+          // Preenche a página com os dados do curso
+          document.getElementById('course-title').textContent = course.title;
+          document.getElementById('course-subtitle').textContent = course.subtitle;
+          document.getElementById('course-price').textContent = course.price;
+          
+          // Preenche o link do checkout
+          document.getElementById('checkout-link').href = `checkout.html?courseId=${courseId}`;
+          
+          // Preenche a lista "O que você vai aprender"
+          const learnListEl = document.getElementById('course-learn-list');
+          course.learnList.forEach(item => {
+              learnListEl.innerHTML += `<li>${item}</li>`;
+          });
+      });
+      
+    </script>
+</body>
+</html>
