@@ -185,11 +185,13 @@
 
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
-            </div>
+            <p>Carregando seus cursos...</p>
+        </div>
 
         <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
         <div class="horizontal-scroll-container" id="catalog-carousel">
-            </div>
+            <p>Carregando catálogo...</p>
+        </div>
 
         <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
         <div class="horizontal-scroll-container" id="tools-carousel">
@@ -217,54 +219,11 @@
       const auth = firebase.auth(); 
       const db = firebase.firestore();
       
-      // --- DADOS DE EXEMPLO (Simulando o Banco de Dados de Cursos) ---
-      
-      const coursesDB = {
-          "curso_higienizacao": {
-              title: "Higienização Profissional",
-              subtitle: "O ponto de partida para a sua nova profissão.",
-              icon: "fa-car-wash",
-              totalLessons: 3 
-          },
-          "curso_polimento_farol": {
-              title: "Polimento de Faróis",
-              subtitle: "Técnicas de restauração e vedação.",
-              icon: "fa-lightbulb",
-              totalLessons: 5
-          },
-          "curso_polimento_pintura": {
-              title: "Polimento de Pintura",
-              subtitle: "Remoção de riscos e vitrificação.",
-              icon: "fa-spray-can",
-              totalLessons: 10
-          }
-      };
-
+      // --- DADOS DE EXEMPLO (APENAS FERRAMENTAS) ---
       const allTools = [
-          {
-              id: "pdf_fornecedores",
-              title: "Fornecedores JP/BR (PDF)",
-              subtitle: "Documento exclusivo com contato e código de desconto.",
-              link: "#", 
-              icon: "fa-file-pdf",
-              buttonText: "Baixar PDF"
-          },
-          {
-              id: "planilha_lucro",
-              title: "Planilha de Lucro",
-              subtitle: "Calcule o rendimento por serviço de higienização.",
-              link: "#", 
-              icon: "fa-calculator",
-              buttonText: "Baixar Planilha"
-          },
-          {
-              id: "suporte_whatsapp",
-              title: "Suporte VIP",
-              subtitle: "Fale com um especialista para dúvidas técnicas.",
-              link: "#", 
-              icon: "fa-whatsapp",
-              buttonText: "Acessar Suporte"
-          }
+          { id: "pdf_fornecedores", title: "Fornecedores JP/BR (PDF)", subtitle: "Documento exclusivo com contato e código de desconto.", link: "#", icon: "fa-file-pdf", buttonText: "Baixar PDF" },
+          { id: "planilha_lucro", title: "Planilha de Lucro", subtitle: "Calcule o rendimento por serviço de higienização.", link: "#", icon: "fa-calculator", buttonText: "Baixar Planilha" },
+          { id: "suporte_whatsapp", title: "Suporte VIP", subtitle: "Fale com um especialista para dúvidas técnicas.", link: "#", icon: "fa-whatsapp", buttonText: "Acessar Suporte" }
       ];
 
       // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
@@ -275,10 +234,13 @@
               window.location.href = 'login.html';
             } else {
               console.log("Usuário logado:", user.uid);
-              
               const userProfile = await getUserProfile(user.uid);
-              
-              loadDashboard(user, userProfile); 
+              if (userProfile) {
+                  loadDashboard(user, userProfile); 
+              } else {
+                  // Se o perfil não for encontrado (raro), desloga
+                  auth.signOut();
+              }
             }
           });
 
@@ -291,32 +253,37 @@
       }); // Fim do DOMContentLoaded
 
 
-      // ATUALIZADO: Função para carregar o Dashboard
+      // ATUALIZADO: Função para carregar o Dashboard (LENDO DO FIRESTORE)
       async function loadDashboard(currentUser, userProfile) {
           const progressContainer = document.getElementById('progress-card-container');
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
           const toolsCarousel = document.getElementById('tools-carousel');
           
-          // Limpa os carrosséis
           myCoursesCarousel.innerHTML = '';
           catalogCarousel.innerHTML = '';
           toolsCarousel.innerHTML = '';
           
           let overallProgressPercent = 0;
           let overallProgressText = "Nenhum progresso ainda.";
-          let courseFound = false; // Flag para o cartão de progresso
+          let courseFound = false; 
           
           // 1. Renderizar Carrosséis
-          for (const courseId in coursesDB) {
-              const course = coursesDB[courseId];
+          // Busca TODOS os cursos do banco de dados
+          const coursesSnapshot = await db.collection("cursos").get();
+
+          for (const doc of coursesSnapshot.docs) {
+              const course = doc.data();
+              const courseId = doc.id; // Este é o ID que você definiu (ex: 'curso_polimento')
               
+              // Verifica se o aluno possui o curso (lendo do perfil real)
               if (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId)) {
                   
                   // Calcular o progresso real
                   const progressData = await getUserProgress(currentUser.uid, courseId);
+                  // Precisamos saber o total de aulas deste curso (do documento do curso)
+                  const totalLessons = course.totalLessons || 1; // Pega o total salvo, ou 1 para evitar divisão por zero
                   const completedCount = progressData.completedCount;
-                  const totalLessons = course.totalLessons;
                   let progressPercent = 0;
                   
                   if (totalLessons > 0) {
@@ -385,13 +352,16 @@
           });
       }
       
-      // 4. NOVO: Função Helper para buscar o PERFIL do aluno
+      // 4. Função Helper para buscar o PERFIL do aluno
       async function getUserProfile(userId) {
           const userDoc = await db.collection('users').doc(userId).get();
           if (userDoc.exists) {
               return userDoc.data(); // Retorna { name: "Nome Real", email: "...", coursesOwned: [] }
           } else {
-              // Fallback (segurança)
+              // Se o admin logar (e não tiver perfil 'users'), cria um perfil de admin 'falso'
+              if(userId === "YVFrEAs90X9b66u9ahQu3tMz212") { // Substitua pelo SEU ID de Admin
+                   return { name: "Admin JB", coursesOwned: ["curso_higienizacao"] }; // Admin vê tudo
+              }
               return { name: "Novo Aluno", coursesOwned: [] };
           }
       }
