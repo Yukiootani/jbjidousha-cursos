@@ -227,6 +227,7 @@
                   loadDashboard(user, userProfile); 
               } else {
                   // Se não encontrou (erro de permissão ou perfil não existe)
+                  console.error("Erro fatal: Perfil do usuário não encontrado. Verifique as Regras do Firestore.");
                   alert("Erro ao carregar seu perfil. Fazendo logout.");
                   auth.signOut();
               }
