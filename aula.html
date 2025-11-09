@@ -16,7 +16,6 @@
             --accent-color: #DAA520; 
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
-            --success-color: #28a745; /* Verde para "Concluído" */
         }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
@@ -64,36 +63,28 @@
         }
         .lesson-details h1 { font-size: 2em; font-weight: 700; }
         .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
-        .navigation-buttons { border-top: 1px solid var(--border-color); }
-        .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
-        .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
-        .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
-        
-        /* Botão de Concluir Aula */
-        .progress-controls {
+        .navigation-buttons { 
             margin-top: 20px;
-            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color); 
+            display: flex;
+            justify-content: space-between;
         }
-        #complete-lesson-btn {
-            background-color: var(--success-color); /* Verde */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 1.1em;
+        .navigation-buttons button { 
+            background-color: var(--action-color); 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            font-weight: bold; 
             cursor: pointer;
-            transition: background-color 0.3s;
         }
-        #complete-lesson-btn:hover { background-color: #218838; }
-        #complete-lesson-btn.completed {
-            background-color: var(--light-text);
-            color: var(--main-text);
-            cursor: default;
+        .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
+        .navigation-buttons button:disabled { 
+            background-color: #ccc; 
+            cursor: not-allowed; 
         }
-
-
-        /* 2. Sidebar (Lista de Aulas) */
+        
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -125,5 +116,222 @@
         }
         .lesson-item:hover { background-color: #f0f0f0; }
         
-        /* Ícone de Aula Concluída (Dourado) */
-        .
+        @media (min-width: 1024px) {
+            .platform-container { flex-direction: row; }
+            .main-content { flex: 2; padding: 20px 20px 20px 0; }
+            .sidebar {
+                width: 350px; min-width: 350px; height: 100vh; overflow-y: auto;
+                order: 2; padding: 20px; border-left: 1px solid var(--border-color);
+                border-top: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <h1 id="course-title">Carregando Curso...</h1>
+        <a href="index.html">← Voltar ao Dashboard</a>
+    </div>
+
+    <div class="platform-container">
+
+        <div class="main-content">
+            
+            <div class="video-player-container">
+                <iframe id="video-player"
+                    src="" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="lesson-details">
+                <p class="module-title" id="current-module-title">Módulo...</p>
+                <h1 id="current-lesson-title">Carregando Aula...</h1>
+                <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
+
+                <div class="navigation-buttons">
+                    <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
+                    <button id="next-lesson-btn">Próxima Aula →</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>Conteúdo do Curso</h2>
+            <ul id="course-outline" class="module-list">
+                </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+
+    <script>
+      // 🔑 SUAS CHAVES REAIS
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
+        authDomain: "jb-jidousha-curso.firebaseapp.com",
+        projectId: "jb-jidousha-curso",
+        storageBucket: "jb-jidousha-curso.firebasestorage.app",
+        messagingSenderId: "825134171693",
+        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
+        measurementId: "G-QLS2RVCTQ6"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth(); 
+      
+      // --- ELEMENTOS DO HTML ---
+      const courseTitleEl = document.getElementById('course-title');
+      const moduleListEl = document.getElementById('course-outline');
+      const videoPlayer = document.getElementById('video-player');
+      const lessonTitleEl = document.getElementById('current-lesson-title');
+      const moduleTitleEl = document.getElementById('current-module-title');
+      const lessonDescriptionEl = document.getElementById('current-lesson-description');
+      
+      const prevLessonBtn = document.getElementById('prev-lesson-btn');
+      const nextLessonBtn = document.getElementById('next-lesson-btn');
+      
+      let flatLessonList = [];
+      let currentLessonIndex = -1;
+
+      // 1. Proteção de Login
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        } else {
+            // Se o usuário estiver logado, inicializa a página
+            initializePage(user);
+        }
+      });
+      
+      // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+      async function initializePage(user) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId');
+          
+          if (!courseId) {
+              alert("Erro: ID do Curso não encontrado na URL!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          try {
+              // 1. Buscar o Título do Curso
+              const courseDoc = await db.collection("cursos").doc(courseId).get();
+              if (courseDoc.exists) {
+                  courseTitleEl.textContent = courseDoc.data().title;
+              }
+
+              // 2. Buscar Módulos (ordenados pelo campo 'order')
+              const modulesSnapshot = await db.collection("modulos")
+                  .where("courseId", "==", courseId)
+                  .orderBy("order")
+                  .get();
+
+              // 3. Buscar Aulas (ordenadas pelo campo 'order')
+              const lessonsSnapshot = await db.collection("aulas")
+                  .orderBy("order")
+                  .get();
+              
+              // 4. Organizar Aulas
+              const allLessons = {};
+              lessonsSnapshot.forEach(doc => {
+                  const lesson = doc.data();
+                  lesson.id = doc.id;
+                  if (!allLessons[lesson.moduleId]) {
+                      allLessons[lesson.moduleId] = [];
+                  }
+                  allLessons[lesson.moduleId].push(lesson);
+              });
+              
+              // 5. Renderizar a Sidebar
+              moduleListEl.innerHTML = '';
+              flatLessonList = [];
+
+              modulesSnapshot.forEach(doc => {
+                  const modulo = doc.data();
+                  const moduleId = doc.id;
+                  
+                  const moduleEl = document.createElement('li');
+                  moduleEl.innerHTML = `<h3>${modulo.title}</h3>`;
+                  
+                  if (allLessons[moduleId]) {
+                      allLessons[moduleId].forEach(lesson => {
+                          const lessonEl = document.createElement('div');
+                          lessonEl.className = 'lesson-item';
+                          lessonEl.dataset.videoId = lesson.videoId;
+                          lessonEl.dataset.title = lesson.title;
+                          lessonEl.dataset.module = modulo.title;
+                          lessonEl.dataset.description = lesson.description;
+                          
+                          lessonEl.innerHTML = `
+                              <span>${lesson.title}</span>
+                              <span class="status-icon"><i class="fas fa-play"></i></span>
+                          `;
+                          
+                          lessonEl.addEventListener('click', () => loadLesson(lessonEl));
+                          moduleEl.appendChild(lessonEl);
+                          flatLessonList.push(lessonEl); 
+                      });
+                  }
+                  moduleListEl.appendChild(moduleEl);
+              });
+              
+              // 6. Carregar a primeira aula por padrão
+              if (flatLessonList.length > 0) {
+                  loadLesson(flatLessonList[0]);
+              } else {
+                  lessonTitleEl.textContent = "Nenhuma aula cadastrada";
+                  lessonDescriptionEl.textContent = "Volte ao painel de administração para adicionar aulas a este módulo.";
+              }
+              
+              // 7. Configurar botões
+              prevLessonBtn.addEventListener('click', loadPreviousLesson);
+              nextLessonBtn.addEventListener('click', loadNextLesson);
+
+          } catch (error) {
+              console.error("Erro CRÍTICO ao carregar o curso:", error);
+              lessonDescriptionEl.textContent = "Erro ao carregar o curso. Verifique as Regras do Firestore.";
+          }
+      }
+
+      // Função para Carregar a Aula
+      function loadLesson(lessonElement) {
+          document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+          lessonElement.classList.add('active');
+          
+          currentLessonIndex = flatLessonList.indexOf(lessonElement);
+          const videoId = lessonElement.dataset.videoId;
+          
+          videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          lessonTitleEl.textContent = lessonElement.dataset.title;
+          moduleTitleEl.textContent = lessonElement.dataset.module;
+          lessonDescriptionEl.textContent = lessonElement.dataset.description;
+          
+          updateNavigationButtons();
+      }
+      
+      // Funções de navegação
+      function updateNavigationButtons() {
+          prevLessonBtn.disabled = (currentLessonIndex === 0);
+          nextLessonBtn.disabled = (currentLessonIndex === flatLessonList.length - 1);
+      }
+      function loadPreviousLesson() {
+          if (currentLessonIndex > 0) {
+              loadLesson(flatLessonList[currentLessonIndex - 1]);
+          }
+      }
+      function loadNextLesson() {
+          if (currentLessonIndex < flatLessonList.length - 1) {
+              loadLesson(flatLessonList[currentLessonIndex + 1]);
+          }
+      }
+      
+    </script>
+</body>
+</html>
