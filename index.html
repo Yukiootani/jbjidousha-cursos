@@ -134,6 +134,28 @@
             font-size: 0.9em;
             font-weight: bold;
         }
+        /* Cartão de Progresso (RE-ADICIONADO) */
+        .progress-card {
+            background-color: var(--content-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color); 
+        }
+        .progress-bar-container {
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%; 
+            background-color: var(--action-color); 
+            border-radius: 5px;
+            transition: width 0.5s ease; /* Animação da barra */
+        }
         .item-button {
             background-color: var(--action-color);
             color: white;
@@ -159,17 +181,20 @@
 
     <div class="dashboard-container">
 
+        <div id="progress-card-container">
+            </div>
+
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
-        </div>
+            </div>
 
         <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
         <div class="horizontal-scroll-container" id="catalog-carousel">
-        </div>
+            </div>
 
         <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
         <div class="horizontal-scroll-container" id="tools-carousel">
-        </div>
+            </div>
 
     </div>
 
@@ -200,12 +225,13 @@
           coursesOwned: ["curso_higienizacao"] 
       };
       
+      // BANCO DE DADOS DE CURSOS (Para sabermos o total de aulas)
       const coursesDB = {
           "curso_higienizacao": {
               title: "Higienização Profissional",
               subtitle: "O ponto de partida para a sua nova profissão.",
               icon: "fa-car-wash",
-              totalLessons: 3 
+              totalLessons: 3 // Total de aulas neste curso
           },
           "curso_polimento_farol": {
               title: "Polimento de Faróis",
@@ -266,26 +292,45 @@
           });
       });
 
-      // ATUALIZADO: Função para carregar o Dashboard
-      function loadDashboard(currentUser, userData) {
+      // ATUALIZADO: Função para carregar o Dashboard (agora Assíncrona)
+      async function loadDashboard(currentUser, userData) {
+          const progressContainer = document.getElementById('progress-card-container');
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
           const toolsCarousel = document.getElementById('tools-carousel');
+          
+          let overallProgressPercent = 0;
+          let overallProgressText = "Nenhum progresso ainda.";
           
           // 1. Renderizar Carrosséis
           for (const courseId in coursesDB) {
               const course = coursesDB[courseId];
               
               if (userData.coursesOwned.includes(courseId)) {
+                  
+                  // NOVO: Calcular o progresso real
+                  const progressData = await getUserProgress(currentUser.uid, courseId);
+                  const completedCount = progressData.completedCount;
+                  const totalLessons = course.totalLessons;
+                  let progressPercent = 0;
+                  
+                  if (totalLessons > 0) {
+                      progressPercent = Math.round((completedCount / totalLessons) * 100);
+                  }
+                  
+                  if (courseId === "curso_higienizacao") {
+                      overallProgressPercent = progressPercent;
+                      overallProgressText = `Seu progresso no curso "${course.title}":`;
+                  }
+
                   // Adiciona em "Meus Cursos"
-                  // 🚨 CORREÇÃO DO CACHE: Adicionado "?v=2" ao link da aula
                   myCoursesCarousel.innerHTML += `
                       <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}&v=2'">
                           <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
                           <div class="card-content">
                               <div class="card-title">${course.title}</div>
                               <div class="card-subtitle">${course.subtitle}</div>
-                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
+                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">${progressPercent}% Concluído</p>
                           </div>
                       </div>
                   `;
@@ -308,7 +353,19 @@
               }
           }
           
-          // 2. Renderizar Ferramentas
+          // 2. Renderizar Cartão de Progresso (Com dados dinâmicos)
+          progressContainer.innerHTML = `
+              <div class="progress-card">
+                  <h2>Bem-vindo, ${userData.name}!</h2>
+                  <p style="color:var(--light-text);">${overallProgressText}</p>
+                  <div class="progress-bar-container">
+                      <div class="progress-bar" style="width: ${overallProgressPercent}%;"></div>
+                  </div>
+                  <p style="margin-top:15px;"><a href="aula.html?courseId=curso_higienizacao&v=2" style="color:var(--action-color); font-weight:bold;">Continuar assistindo</a></p>
+              </div>
+          `;
+          
+          // 3. Renderizar Ferramentas
           allTools.forEach(tool => {
               toolsCarousel.innerHTML += `
                   <div class="course-card" style="min-height: 150px;" onclick="window.location.href='${tool.link}'">
@@ -320,6 +377,28 @@
                   </div>
               `;
           });
+      }
+      
+      // 4. NOVO: Função Helper para buscar o progresso
+      async function getUserProgress(userId, courseId) {
+          const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
+          
+          try {
+              const doc = await progressRef.get();
+              
+              if (doc.exists) {
+                  const completedLessons = doc.data().completedLessons || {};
+                  const completedCount = Object.keys(completedLessons).length;
+                  console.log("Progresso lido:", completedCount);
+                  return { completedCount: completedCount, completedLessons: completedLessons };
+              } else {
+                  console.log("Nenhum progresso encontrado, retornando 0.");
+                  return { completedCount: 0, completedLessons: {} };
+              }
+          } catch (error) {
+              console.error("Erro ao LER progresso:", error);
+              return { completedCount: 0, completedLessons: {} };
+          }
       }
       
     </script>
