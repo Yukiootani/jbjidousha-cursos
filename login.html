@@ -6,6 +6,7 @@
     <title>Acesso Aluno | JB Jidousha Cursos</title>
     
     <style>
+        /* [Paleta de Cores Premium (Branco, Preto, Dourado)] */
         :root {
             --bg-color: #f7f7f7; 
             --content-bg: #FFFFFF; 
@@ -74,6 +75,17 @@
             margin-top: 15px;
             font-weight: 600;
         }
+        
+        /* NOVO: Link para Registo */
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .register-link a {
+            color: var(--action-color);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +102,10 @@
             <button type="submit">Entrar na Plataforma</button>
         </form>
         <p id="error-message"></p>
+        
+        <div class="register-link">
+            Não tem conta? <a href="registrar.html">Registe-se aqui</a>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
