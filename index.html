@@ -64,9 +64,7 @@
             -webkit-overflow-scrolling: touch;
             padding: 0 0 20px 0; 
             gap: 20px;
-            min-height: 100px; /* Garante que o container apareça mesmo se vazio */
         }
-        
         .course-card {
             flex: 0 0 auto; 
             width: 300px; 
@@ -144,168 +142,13 @@
             margin-bottom: 30px;
             border-left: 5px solid var(--accent-color); 
         }
-        
-    </style>
-</head>
-<body>
-    
-    <div class="top-bar">
-        <div class="logo-container">
-            <img src="https://artebrasil.jp/wp-content/uploads/2024/02/Midia-1-654D52D1-1AAC-49EB-9596-CFEBD3F04B96.jpg" alt="JB Jidousha Logo" class="header-logo">
-            <h1 id="welcome-title">JB JIDOUSHA CURSOS</h1>
-        </div>
-        <button id="logout-btn">Sair</button>
-    </div>
-
-    <div class="dashboard-container">
-
-        <h2 class="section-title">Meus Cursos</h2>
-        <div class="horizontal-scroll-container" id="my-courses-carousel">
-            <p>Carregando seus cursos...</p>
-        </div>
-
-        <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
-        <div class="horizontal-scroll-container" id="catalog-carousel">
-            <p>Carregando catálogo...</p>
-        </div>
-
-        <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
-        <div class="horizontal-scroll-container" id="tools-carousel">
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
-                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
-                </div>
-            </div>
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
-                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
-
-    <script>
-      // 🔑 SUAS CHAVES REAIS
-      const firebaseConfig = {
-        apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
-        authDomain: "jb-jidousha-curso.firebaseapp.com",
-        projectId: "jb-jidousha-curso",
-        storageBucket: "jb-jidousha-curso.firebasestorage.app",
-        messagingSenderId: "825134171693",
-        appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
-        measurementId: "G-QLS2RVCTQ6"
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth(); 
-      const db = firebase.firestore();
-      
-      // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
-      
-      document.addEventListener('DOMContentLoaded', () => {
-          
-          auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-              window.location.href = 'login.html';
-            } else {
-              console.log("Usuário logado:", user.uid);
-              // Tenta buscar o perfil real do aluno
-              const userProfile = await getUserProfile(user.uid);
-              
-              if(userProfile) {
-                  // Se encontrou o perfil, carrega o dashboard
-                  loadDashboard(user, userProfile); 
-              } else {
-                  // Se não encontrou (erro de permissão ou perfil não existe)
-                  alert("Erro ao carregar seu perfil. Fazendo logout.");
-                  auth.signOut();
-              }
-            }
-          });
-
-          // Lógica de Logout
-          document.getElementById('logout-btn').addEventListener('click', () => {
-              auth.signOut().then(() => {
-                  window.location.href = 'login.html'; 
-              });
-          });
-      }); // Fim do DOMContentLoaded
-
-
-      // ATUALIZADO: Função para carregar o Dashboard (LENDO DO FIRESTORE)
-      async function loadDashboard(currentUser, userProfile) {
-          const myCoursesCarousel = document.getElementById('my-courses-carousel');
-          const catalogCarousel = document.getElementById('catalog-carousel');
-          const welcomeTitle = document.getElementById('welcome-title');
-          
-          // Personaliza o "Bem-vindo"
-          welcomeTitle.textContent = `Bem-vindo(a), ${userProfile.name}!`;
-          
-          // Limpa os carrosséis
-          myCoursesCarousel.innerHTML = '';
-          catalogCarousel.innerHTML = '';
-          
-          try {
-              // 1. Busca TODOS os cursos do banco de dados
-              const coursesSnapshot = await db.collection("cursos").get();
-              
-              if (coursesSnapshot.empty) {
-                  myCoursesCarousel.innerHTML = '<p>Nenhum curso cadastrado ainda.</p>';
-                  return;
-              }
-
-              coursesSnapshot.forEach(doc => {
-                  const course = doc.data();
-                  const courseId = doc.id; // ID que você definiu (ex: 'curso_polimento')
-                  
-                  // Verifica se o aluno possui o curso (lendo do perfil real)
-                  // (Vamos assumir que o admin (você) tem acesso a tudo por enquanto)
-                  // (E que o aluno novo não tem acesso a nada)
-                  const isOwned = userProfile.isAdmin || (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId));
-
-                  if (isOwned) {
-                      // Adiciona em "Meus Cursos"
-                      myCoursesCarousel.innerHTML += `
-                          <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
-                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                              <div class="card-content">
-                                  <div class="card-title">${course.title}</div>
-                                  <div class="card-subtitle">${course.subtitle}</div>
-                                  <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
-                              </div>
-                          </div>
-                      `;
-                  } else {
-                      // Adiciona no "Catálogo" com cadeado
-                      catalogCarousel.innerHTML += `
-                          <div class="course-card">
-                              <div class="lock-overlay">
-                                  <i class="fas fa-lock"></i>
-                                  ${course.title}
-                                  <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
-                              </div>
-                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                              <div class="card-content">
-                                  <div class="card-title">${course.title}</div>
-                                  <div class="card-subtitle">${course.subtitle}</div>
-                              </div>
-                          </div>
-                      `;
-                  }
-              });
-
-          } catch (error) {
-              console.error("Erro ao carregar cursos:", error);
-              myCoursesCarousel.innerHTML = `<p style="color:red;">Erro ao carregar cursos. Verifique as Regras do Firebase.</p>`;
-          }
-      }
-      
-      // Função Helper para buscar o PERFIL do aluno
-      async function getUserProfile(
+        .progress-bar-container {
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%; 
+            background-color:
