@@ -68,8 +68,22 @@
         /* Estilos da lista de aulas */
         #modules-list { list-style-type: none; padding-left: 0; }
         .module-item { background-color: #f9f9f9; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        .module-item h4 { margin-top: 0; }
-        .lesson-list-item { font-size: 0.9em; padding-left: 20px; }
+        .module-item h4 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+        .lesson-list-item { font-size: 0.9em; padding-left: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* NOVO: Estilo dos botões de Excluir */
+        .delete-btn {
+            background-color: var(--error-color);
+            color: white;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            width: auto; /* Tamanho automático */
+            font-weight: normal;
+        }
+        .delete-btn.module-delete-btn {
+            background-color: #c9302c; /* Vermelho mais escuro para Módulo */
+        }
+        
     </style>
 </head>
 <body>
@@ -208,10 +222,12 @@
               const allLessons = {};
               lessonsSnapshot.forEach(doc => {
                   const lesson = doc.data();
+                  lesson.id = doc.id; // Salva o ID do documento
+                  
                   if (!allLessons[lesson.moduleId]) {
                       allLessons[lesson.moduleId] = [];
                   }
-                  allLessons[lesson.moduleId].push(lesson.title);
+                  allLessons[lesson.moduleId].push(lesson);
               });
 
               // 3. Renderizar Módulos e Aulas
@@ -222,12 +238,20 @@
                   selectModule.innerHTML += `<option value="${doc.id}">${modulo.title}</option>`;
                   
                   // Adiciona à Lista de Visualização
-                  modulesHtml += `<div class="module-item"><h4>${modulo.title}</h4>`;
+                  modulesHtml += `<div class="module-item">
+                                    <h4>
+                                        ${modulo.title}
+                                        <button class="delete-btn module-delete-btn" data-module-id="${doc.id}">Excluir Módulo</button>
+                                    </h4>`;
                   
                   if (allLessons[doc.id] && allLessons[doc.id].length > 0) {
                       modulesHtml += '<ul class="lesson-list-item">';
-                      allLessons[doc.id].forEach(title => {
-                          modulesHtml += `<li>${title}</li>`;
+                      allLessons[doc.id].forEach(lesson => {
+                          modulesHtml += `
+                            <li>
+                                ${lesson.title}
+                                <button class="delete-btn" data-lesson-id="${lesson.id}">Excluir</button>
+                            </li>`;
                       });
                       modulesHtml += '</ul>';
                   } else {
@@ -247,6 +271,45 @@
 
       // --- LÓGICA DE EVENTOS ---
 
+      // NOVO: Funções de Excluir
+      async function deleteLesson(id) {
+          if (!confirm('Tem certeza que deseja EXCLUIR esta AULA?')) return;
+          
+          try {
+              await db.collection(AULAS_COLLECTION).doc(id).delete();
+              showStatus(statusDiv, "Aula excluída com sucesso!", "success");
+              loadModulesAndLessons(); // Recarrega
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao excluir aula: " + error.message, "error");
+          }
+      }
+
+      async function deleteModule(id) {
+          if (!confirm('Tem certeza que deseja EXCLUIR este MÓDULO?\n\nATENÇÃO: Exclua todas as aulas dentro dele PRIMEIRO.')) return;
+          
+          try {
+              await db.collection(MODULOS_COLLECTION).doc(id).delete();
+              showStatus(statusDiv, "Módulo excluído com sucesso!", "success");
+              loadModulesAndLessons(); // Recarrega
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao excluir módulo: " + error.message, "error");
+          }
+      }
+      
+      // NOVO: Event listener para os cliques na lista (incluindo botões de excluir)
+      modulesListDiv.addEventListener('click', (e) => {
+          if (e.target.classList.contains('delete-btn')) {
+              if (e.target.classList.contains('module-delete-btn')) {
+                  // É um botão de excluir Módulo
+                  deleteModule(e.target.dataset.moduleId);
+              } else {
+                  // É um botão de excluir Aula
+                  deleteLesson(e.target.dataset.lessonId);
+              }
+          }
+      });
+
+
       // 1. Salvar Módulo
       formModulo.addEventListener('submit', async (e) => {
           e.preventDefault();
@@ -261,7 +324,7 @@
               });
               showStatus(statusDiv, "Módulo salvo com sucesso!", "success");
               formModulo.reset();
-              loadModulesAndLessons(); // Recarrega a lista
+              loadModulesAndLessons(); 
           } catch (error) {
               showStatus(statusDiv, "Erro ao salvar módulo: " + error.message, "error");
           }
@@ -292,7 +355,7 @@
               });
               showStatus(statusDiv, "Aula salva com sucesso!", "success");
               formAula.reset();
-              loadModulesAndLessons(); // Recarrega a lista
+              loadModulesAndLessons(); 
           } catch (error) {
               showStatus(statusDiv, "Erro ao salvar aula: " + error.message, "error");
           }
@@ -306,7 +369,6 @@
           showStatus(loginStatusDiv, 'Tentando entrar...', 'loading');
           try {
               await auth.signInWithEmailAndPassword(email, password);
-              // Sucesso no login, não precisamos fazer nada, o onAuthStateChanged cuida disso
           } catch (error) {
               showStatus(loginStatusDiv, `Erro de Acesso: ${error.message}`, 'error');
           }
@@ -317,15 +379,13 @@
           await auth.signOut();
       });
 
-      // 5. Verificação de Estado de Autenticação (Controla a exibição)
+      // 5. Verificação de Estado de Autenticação
       auth.onAuthStateChanged((user) => {
           if (user) {
-              // Usuário LOGADO
               loginSection.style.display = 'none';
               adminSection.style.display = 'block';
-              loadModulesAndLessons(); // Carrega o conteúdo do curso
+              loadModulesAndLessons(); 
           } else {
-              // Usuário DESLOGADO
               loginSection.style.display = 'block';
               adminSection.style.display = 'none';
           }
