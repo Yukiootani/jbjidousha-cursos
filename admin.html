@@ -6,9 +6,8 @@
     <title>Admin | JB Jidousha Cursos</title>
     
     <style>
-        /* [O CSS do Admin está aqui...] */
         :root {
-            --accent-color: #DAA52D; 
+            --accent-color: #DAA520; 
             --action-color: #1463a5; 
             --error-color: #dc3545;
             --bg-color: #f0f0f0;
@@ -117,6 +116,9 @@
 
             <h3>1. Adicionar Novo Curso</h3>
             <form id="formCurso">
+                <label for="course-id">ID Único do Curso (sem espaços):</label>
+                <input type="text" id="course-id" placeholder="Ex: curso_higienizacao_v1" required>
+                
                 <label for="course-title">Título do Curso:</label>
                 <input type="text" id="course-title" placeholder="Ex: Higienização Profissional" required>
                 
@@ -125,9 +127,6 @@
                 
                 <label for="course-icon">Ícone (FontAwesome):</label>
                 <input type="text" id="course-icon" placeholder="Ex: fa-car-wash" required>
-                
-                <label for="course-lessons">Total de Aulas (Número):</label>
-                <input type="number" id="course-lessons" placeholder="10" required>
 
                 <button type="submit">Salvar Novo Curso</button>
             </form>
@@ -292,7 +291,7 @@
           cursos.forEach(curso => {
               html += `<li class="course-item">
                           <div>
-                              <strong>${curso.title}</strong>
+                              <strong>${curso.title} (ID: ${curso.id})</strong>
                               <button class="delete-btn" data-id="${curso.id}" data-type="curso">Excluir Curso</button>
                           </div>`;
               
@@ -373,152 +372,4 @@
       function populateModuleSelect(selectedCourseId) {
           selectModule.innerHTML = '<option value="">-- Selecione o Módulo --</option>'; // Limpa
 
-          if (!selectedCourseId) {
-              selectModule.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>';
-              return;
-          }
-
-          // Filtra o cache de módulos
-          const modulosDoCurso = cacheModulos.filter(m => m.courseId === selectedCourseId);
-          
-          if (modulosDoCurso.length === 0) {
-              selectModule.innerHTML = '<option value="">-- Nenhum módulo para este curso --</option>';
-          }
-
-          // Adiciona os módulos filtrados ao dropdown
-          modulosDoCurso.forEach(modulo => {
-              selectModule.innerHTML += `<option value="${modulo.id}">${modulo.title}</option>`;
-          });
-      }
-
-
-      // 1. Salvar Curso
-      formCurso.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const title = document.getElementById('course-title').value;
-          const subtitle = document.getElementById('course-subtitle').value;
-          const icon = document.getElementById('course-icon').value;
-          const totalLessons = parseInt(document.getElementById('course-lessons').value);
-          
-          try {
-              const docRef = await db.collection(CURSOS_COLLECTION).add({
-                  title: title,
-                  subtitle: subtitle,
-                  icon: icon,
-                  totalLessons: totalLessons
-              });
-              showStatus(statusDiv, "Curso salvo com sucesso!", "success");
-              formCurso.reset();
-              loadAllContent(); // Recarrega tudo
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar curso: " + error.message, "error");
-          }
-      });
-      
-      // 2. Salvar Módulo
-      formModulo.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const courseId = document.getElementById('module-course').value;
-          const title = document.getElementById('module-title').value;
-          const order = parseInt(document.getElementById('module-order').value);
-          
-          if (!courseId) {
-              showStatus(statusDiv, "Erro: Selecione um curso.", "error");
-              return;
-          }
-          
-          try {
-              await db.collection(MODULOS_COLLECTION).add({
-                  courseId: courseId,
-                  title: title,
-                  order: order
-              });
-              showStatus(statusDiv, "Módulo salvo com sucesso!", "success");
-              formModulo.reset();
-              loadAllContent(); 
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar módulo: " + error.message, "error");
-          }
-      });
-      
-      // 3. Salvar Aula
-      formAula.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const moduleId = document.getElementById('lesson-module').value;
-          const title = document.getElementById('lesson-title').value;
-          const videoId = document.getElementById('lesson-videoid').value;
-          const description = document.getElementById('lesson-description').value;
-          const order = parseInt(document.getElementById('lesson-order').value);
-
-          if (!moduleId) {
-              showStatus(statusDiv, "Erro: Selecione um módulo.", "error");
-              return;
-          }
-
-          try {
-              await db.collection(AULAS_COLLECTION).add({
-                  moduleId: moduleId,
-                  title: title,
-                  videoId: videoId,
-                  description: description,
-                  order: order
-              });
-              showStatus(statusDiv, "Aula salva com sucesso!", "success");
-              formAula.reset();
-              loadAllContent(); 
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar aula: " + error.message, "error");
-          }
-      });
-
-      // 4. Lógica de Login
-      loginForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const email = document.getElementById('login-email').value;
-          const password = document.getElementById('login-password').value;
-          showStatus(loginStatusDiv, 'Tentando entrar...', 'loading');
-          try {
-              await auth.signInWithEmailAndPassword(email, password);
-          } catch (error) {
-              showStatus(loginStatusDiv, `Erro de Acesso: ${error.message}`, 'error');
-          }
-      });
-
-      // 5. Lógica de Logout
-      btnLogout.addEventListener('click', async () => {
-          await auth.signOut();
-      });
-
-      // 6. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN E GESTÃO DE ERROS)
-      auth.onAuthStateChanged(async (user) => {
-          if (user) {
-              // Utilizador está logado. ELE É ADMIN?
-              try {
-                  const userDoc = await db.collection('users').doc(user.uid).get();
-                  if (userDoc.exists && userDoc.data().isAdmin === true) {
-                      // SIM, É ADMIN
-                      loginSection.style.display = 'none';
-                      adminSection.style.display = 'block';
-                      loadAllContent(); 
-                  } else {
-                      // NÃO, É UM ALUNO NORMAL (ou não tem a marcação)
-                      showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
-                      auth.signOut();
-                  }
-              } catch (error) {
-                  // Ocorreu um erro ao LER o perfil (provavelmente as regras ainda estão erradas)
-                  console.error("Erro ao verificar permissão de admin:", error);
-                  showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}`, "error");
-                  auth.signOut();
-              }
-          } else {
-              // Utilizador DESLOGADO
-              loginSection.style.display = 'block';
-              adminSection.style.display = 'none';
-          }
-      });
-        
-    </script>
-
-</body>
-</html>
+          if (!selected
