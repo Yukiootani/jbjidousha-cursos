@@ -6,9 +6,8 @@
     <title>Admin | JB Jidousha Cursos</title>
     
     <style>
-        /* [O CSS do Admin está aqui...] */
         :root {
-            --accent-color: #DAA52D; 
+            --accent-color: #DAA520; 
             --action-color: #1463a5; 
             --error-color: #dc3545;
             --bg-color: #f0f0f0;
@@ -155,6 +154,11 @@
             <form id="formAula">
                 <h3>3. Adicionar Nova Aula</h3>
                 
+                <label for="lesson-course-select">Selecionar Curso (para filtrar módulos):</label>
+                <select id="lesson-course-select" required>
+                    <option value="">-- Carregando Cursos... --</option>
+                </select>
+
                 <label for="lesson-module">Selecionar Módulo:</label>
                 <select id="lesson-module" required>
                     <option value="">-- Selecione um curso primeiro --</option>
@@ -224,8 +228,11 @@
       const formModulo = document.getElementById('formModulo');
       const formAula = document.getElementById('formAula');
       
-      const selectCourse = document.getElementById('module-course');
-      const selectModule = document.getElementById('lesson-module');
+      // Dropdowns
+      const selectCourseInModuloForm = document.getElementById('module-course'); // Form 2
+      const selectCourseInAulaForm = document.getElementById('lesson-course-select'); // Form 3
+      const selectModuleInAulaForm = document.getElementById('lesson-module'); // Form 3
+      
       const contentListDiv = document.getElementById('content-list');
 
       let cacheCursos = []; 
@@ -239,8 +246,10 @@
       // --- LÓGICA DE CARREGAMENTO ---
 
       async function loadAllContent() {
-          selectCourse.innerHTML = '<option value="">-- Selecione o Curso --</option>';
-          selectModule.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>'; 
+          // Limpa todos os menus
+          selectCourseInModuloForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
+          selectCourseInAulaForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
+          selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>'; 
           contentListDiv.innerHTML = '<p>Carregando...</p>';
           
           cacheCursos = [];
@@ -253,7 +262,9 @@
                   const course = doc.data();
                   course.id = doc.id;
                   cacheCursos.push(course);
-                  selectCourse.innerHTML += `<option value="${course.id}">${course.title}</option>`;
+                  // Popula AMBOS os dropdowns de curso (Form 2 e Form 3)
+                  selectCourseInModuloForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
+                  selectCourseInAulaForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
               });
               
               // 2. Buscar Módulos
@@ -262,7 +273,6 @@
                   const modulo = doc.data();
                   modulo.id = doc.id;
                   cacheModulos.push(modulo);
-                  // NÃO POPULA o selectModule (Form 3) aqui.
               });
 
               // 3. Buscar Aulas
@@ -364,18 +374,18 @@
           }
       });
       
-      // Event Listener para filtrar os módulos quando um curso é selecionado
-      selectCourse.addEventListener('change', () => {
-          const selectedCourseId = selectCourse.value;
+      // 🚨 CORREÇÃO: Event Listener para filtrar os módulos quando um curso é selecionado (NO FORM 3)
+      selectCourseInAulaForm.addEventListener('change', () => {
+          const selectedCourseId = selectCourseInAulaForm.value;
           populateModuleSelect(selectedCourseId);
       });
       
-      // Função: Popula o dropdown de Módulos (Form 3)
+      // 🚨 CORREÇÃO: Popula o dropdown de Módulos (Form 3)
       function populateModuleSelect(selectedCourseId) {
-          selectModule.innerHTML = '<option value="">-- Selecione o Módulo --</option>'; // Limpa
+          selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione o Módulo --</option>'; // Limpa
 
           if (!selectedCourseId) {
-              selectModule.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>';
+              selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>';
               return;
           }
 
@@ -383,12 +393,12 @@
           const modulosDoCurso = cacheModulos.filter(m => m.courseId === selectedCourseId);
           
           if (modulosDoCurso.length === 0) {
-              selectModule.innerHTML = '<option value="">-- Nenhum módulo para este curso --</option>';
+              selectModuleInAulaForm.innerHTML = '<option value="">-- Nenhum módulo para este curso --</option>';
           }
 
           // Adiciona os módulos filtrados ao dropdown
           modulosDoCurso.forEach(modulo => {
-              selectModule.innerHTML += `<option value="${modulo.id}">${modulo.title}</option>`;
+              selectModuleInAulaForm.innerHTML += `<option value="${modulo.id}">${modulo.title}</option>`;
           });
       }
 
@@ -407,12 +417,10 @@
           }
           
           try {
-              // Usa o ID manual (set) em vez de automático (add)
               await db.collection(CURSOS_COLLECTION).doc(courseId).set({
                   title: title,
                   subtitle: subtitle,
                   icon: icon
-                  // O total de aulas será calculado dinamicamente no futuro
               });
               showStatus(statusDiv, "Curso salvo com sucesso!", "success");
               formCurso.reset();
@@ -451,7 +459,7 @@
       // 3. Salvar Aula
       formAula.addEventListener('submit', async (e) => {
           e.preventDefault();
-          const moduleId = document.getElementById('lesson-module').value;
+          const moduleId = document.getElementById('lesson-module').value; // Corrigido
           const title = document.getElementById('lesson-title').value;
           const videoId = document.getElementById('lesson-videoid').value;
           const description = document.getElementById('lesson-description').value;
@@ -496,31 +504,25 @@
           await auth.signOut();
       });
 
-      // 6. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN E GESTÃO DE ERROS)
+      // 6. Verificação de Estado de Autenticação
       auth.onAuthStateChanged(async (user) => {
           if (user) {
-              // Utilizador está logado. ELE É ADMIN?
               try {
                   const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
-                  
                   if (userDoc.exists && userDoc.data().isAdmin === true) {
-                      // SIM, É ADMIN
                       loginSection.style.display = 'none';
                       adminSection.style.display = 'block';
                       loadAllContent(); 
                   } else {
-                      // NÃO, É UM ALUNO NORMAL (ou não tem a marcação)
                       showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
                       auth.signOut();
                   }
               } catch (error) {
-                  // Ocorreu um erro ao LER o perfil (provavelmente as regras ainda estão erradas)
                   console.error("Erro ao verificar permissão de admin:", error);
                   showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras do Firebase.`, "error");
                   auth.signOut();
               }
           } else {
-              // Utilizador DESLOGADO
               loginSection.style.display = 'block';
               adminSection.style.display = 'none';
           }
