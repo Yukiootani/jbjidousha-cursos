@@ -224,7 +224,6 @@
           coursesOwned: ["curso_higienizacao"] 
       };
       
-      // BANCO DE DADOS DE CURSOS (Para sabermos o total de aulas)
       const coursesDB = {
           "curso_higienizacao": {
               title: "Higienização Profissional",
@@ -275,21 +274,27 @@
 
       // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
       
-      auth.onAuthStateChanged((user) => {
-        if (!user) {
-          window.location.href = 'login.html';
-        } else {
-          console.log("Usuário logado:", user.uid);
-          loadDashboard(user, userExample); 
-        }
-      });
-
-      // Lógica de Logout
-      document.getElementById('logout-btn').addEventListener('click', () => {
-          auth.signOut().then(() => {
-              window.location.href = 'login.html'; 
+      // 🚨 CORREÇÃO DE TIMING: Espera o HTML carregar ANTES de rodar o JS
+      document.addEventListener('DOMContentLoaded', () => {
+          
+          auth.onAuthStateChanged((user) => {
+            if (!user) {
+              window.location.href = 'login.html';
+            } else {
+              console.log("Usuário logado:", user.uid);
+              loadDashboard(user, userExample); 
+            }
           });
-      });
+
+          // Lógica de Logout
+          document.getElementById('logout-btn').addEventListener('click', () => {
+              auth.signOut().then(() => {
+                  window.location.href = 'login.html'; 
+              });
+          });
+
+      }); // <-- Fim do DOMContentLoaded
+
 
       // ATUALIZADO: Função para carregar o Dashboard
       async function loadDashboard(currentUser, userData) {
@@ -297,6 +302,11 @@
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
           const toolsCarousel = document.getElementById('tools-carousel');
+          
+          // Limpa os carrosséis para evitar duplicação em recarregamentos
+          myCoursesCarousel.innerHTML = '';
+          catalogCarousel.innerHTML = '';
+          toolsCarousel.innerHTML = '';
           
           let overallProgressPercent = 0;
           let overallProgressText = "Nenhum progresso ainda.";
@@ -335,7 +345,6 @@
                   `;
               } else {
                   // Adiciona no "Catálogo" com cadeado
-                  // 🚨 CORREÇÃO APLICADA AQUI: O botão agora leva para a página de vendas
                   catalogCarousel.innerHTML += `
                       <div class="course-card">
                           <div class="lock-overlay">
@@ -379,7 +388,7 @@
           });
       }
       
-      // 4. NOVO: Função Helper para buscar o progresso
+      // 4. Função Helper para buscar o progresso
       async function getUserProgress(userId, courseId) {
           const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
           
@@ -388,4 +397,19 @@
               
               if (doc.exists) {
                   const completedLessons = doc.data().completedLessons || {};
-                  const completedCount = Object.keys(completed
+                  const completedCount = Object.keys(completedLessons).length;
+                  console.log("Progresso lido:", completedCount);
+                  return { completedCount: completedCount, completedLessons: completedLessons };
+              } else {
+                  console.log("Nenhum progresso encontrado, retornando 0.");
+                  return { completedCount: 0, completedLessons: {} };
+              }
+          } catch (error) {
+              console.error("Erro ao LER progresso:", error);
+              return { completedCount: 0, completedLessons: {} };
+          }
+      }
+      
+    </script>
+</body>
+</html>
