@@ -16,6 +16,7 @@
             --accent-color: #DAA520; 
             --action-color: #333333; /* PRETO (Botões) */
             --border-color: #e9ecef; 
+            --success-color: #28a745; /* Verde para "Concluído" */
         }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
         .top-bar {
@@ -63,28 +64,36 @@
         }
         .lesson-details h1 { font-size: 2em; font-weight: 700; }
         .lesson-details .module-title { color: var(--light-text); font-weight: 500; }
-        .navigation-buttons { 
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color); 
-            display: flex;
-            justify-content: space-between;
-        }
-        .navigation-buttons button { 
-            background-color: var(--action-color); 
-            color: white; 
-            border: none; 
-            padding: 10px 15px; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            cursor: pointer;
-        }
+        .navigation-buttons { border-top: 1px solid var(--border-color); }
+        .navigation-buttons button { background-color: var(--action-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
         .navigation-buttons button:hover:not(:disabled) { background-color: #555; }
-        .navigation-buttons button:disabled { 
-            background-color: #ccc; 
-            cursor: not-allowed; 
-        }
+        .navigation-buttons button:disabled { background-color: #ccc; cursor: not-allowed; }
         
+        /* Botão de Concluir Aula */
+        .progress-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #complete-lesson-btn {
+            background-color: var(--success-color); /* Verde */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #complete-lesson-btn:hover { background-color: #218838; }
+        #complete-lesson-btn.completed {
+            background-color: var(--light-text);
+            color: var(--main-text);
+            cursor: default;
+        }
+
+
+        /* 2. Sidebar (Lista de Aulas) */
         .sidebar {
             width: 100%; 
             background-color: var(--bg-color);
@@ -115,6 +124,10 @@
             font-weight: bold;
         }
         .lesson-item:hover { background-color: #f0f0f0; }
+        
+        /* Ícone de Aula Concluída (Dourado) */
+        .lesson-item .status-icon.completed { color: var(--accent-color); }
+        .lesson-item.active .status-icon { color: var(--accent-color); }
         
         @media (min-width: 1024px) {
             .platform-container { flex-direction: row; }
@@ -151,6 +164,10 @@
                 <h1 id="current-lesson-title">Carregando Aula...</h1>
                 <p id="current-lesson-description">Selecione uma aula na lista ao lado para começar.</p>
 
+                <div class="progress-controls">
+                    <button id="complete-lesson-btn">Marcar como Concluída</button>
+                </div>
+
                 <div class="navigation-buttons">
                     <button id="prev-lesson-btn" disabled>← Aula Anterior</button>
                     <button id="next-lesson-btn">Próxima Aula →</button>
@@ -185,6 +202,34 @@
       const db = firebase.firestore();
       const auth = firebase.auth(); 
       
+      // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
+      const coursesDB = {
+          "curso_higienizacao": {
+              title: "Curso de Higienização Profissional",
+              modules: [
+                  {
+                      title: "Módulo 1: Fundamentos",
+                      lessons: [
+                          { id: "L01", title: "1.1. Segurança e Produtos", videoId: "dQw4w9WgXcQ", description: "Aprenda sobre EPIs e diluição correta dos produtos." },
+                          { id: "L02", title: "1.2. Limpeza de Painel e Forro", videoId: "b66r_M-o72g", description: "Técnicas de limpeza a seco e com vapor." }
+                      ]
+                  },
+                  {
+                      title: "Módulo 2: O Estofamento",
+                      lessons: [
+                          { id: "L03", title: "2.1. Técnicas de Extração", videoId: "R2-43pNcA-E", description: "Como usar a extratora em diferentes tecidos." }
+                      ]
+                  }
+              ]
+          },
+      };
+      
+      // --- VARIÁVEIS GLOBAIS ---
+      let currentCourseId = null;
+      let currentLessonId = null;
+      let currentUser = null;
+      let userProgress = {}; 
+      
       // --- ELEMENTOS DO HTML ---
       const courseTitleEl = document.getElementById('course-title');
       const moduleListEl = document.getElementById('course-outline');
@@ -192,112 +237,171 @@
       const lessonTitleEl = document.getElementById('current-lesson-title');
       const moduleTitleEl = document.getElementById('current-module-title');
       const lessonDescriptionEl = document.getElementById('current-lesson-description');
+      const completeLessonBtn = document.getElementById('complete-lesson-btn'); // Botão de progresso
       
+      // Botões de Navegação
       const prevLessonBtn = document.getElementById('prev-lesson-btn');
       const nextLessonBtn = document.getElementById('next-lesson-btn');
       
-      let flatLessonList = []; // Lista de todas as aulas em ordem
-      let currentLessonIndex = -1; // Índice da aula atual
+      let flatLessonList = [];
+      let currentLessonIndex = -1;
 
-      // 1. Proteção de Login
-      auth.onAuthStateChanged((user) => {
+      // --- CORREÇÃO DE LÓGICA (TUDO DENTRO DO AUTH) ---
+
+      auth.onAuthStateChanged(async (user) => {
         if (!user) {
+          // 1. NÃO ESTÁ LOGADO
           window.location.href = 'login.html';
         } else {
-            // Se o usuário estiver logado, inicializa a página
-            initializePage(user);
+          // 2. ESTÁ LOGADO
+          currentUser = user; 
+          console.log("Usuário logado:", currentUser.uid);
+          
+          // 3. INICIA A LÓGICA DA PÁGINA (SÓ DEPOIS DE LOGAR)
+          await initializePage();
         }
       });
       
-      // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO (AGORA LÊ O FIRESTORE)
-      async function initializePage(user) {
+      // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+      async function initializePage() {
+          const urlParams = new URLSearchParams(window.location.search);
+          currentCourseId = urlParams.get('courseId') || "curso_higienizacao"; 
           
-          try {
-              // 1. Buscar Módulos (ordenados pelo campo 'order')
-              const modulesSnapshot = await db.collection("modulos").orderBy("order").get();
+          if (!currentCourseId || !coursesDB[currentCourseId]) {
+              alert("Erro: Curso não encontrado!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          const course = coursesDB[currentCourseId];
+          courseTitleEl.textContent = course.title;
+          
+          // Carrega o progresso ANTES de renderizar a sidebar
+          await loadUserProgress(currentUser.uid);
+          
+          // Limpa a lista de aulas e a lista plana
+          moduleListEl.innerHTML = '';
+          flatLessonList = [];
+          
+          // Renderiza a Sidebar
+          course.modules.forEach(module => {
+              const moduleEl = document.createElement('li');
+              moduleEl.innerHTML = `<h3>${module.title}</h3>`;
               
-              // 2. Buscar Aulas (ordenadas pelo campo 'order')
-              const lessonsSnapshot = await db.collection("aulas").orderBy("order").get();
-              
-              const allLessons = {}; // Objeto para agrupar aulas por módulo
-              lessonsSnapshot.forEach(doc => {
-                  const lesson = doc.data();
-                  lesson.id = doc.id; // Guarda o ID do documento
-                  if (!allLessons[lesson.moduleId]) {
-                      allLessons[lesson.moduleId] = [];
-                  }
-                  allLessons[lesson.moduleId].push(lesson);
-              });
-
-              // 3. Renderizar a Sidebar
-              moduleListEl.innerHTML = ''; // Limpa a lista
-              flatLessonList = []; // Limpa a lista plana
-              
-              if (modulesSnapshot.empty) {
-                  moduleListEl.innerHTML = '<li>Nenhum módulo cadastrado ainda.</li>';
-                  return;
-              }
-
-              modulesSnapshot.forEach(doc => {
-                  const modulo = doc.data();
-                  const moduleId = doc.id;
+              module.lessons.forEach(lesson => {
+                  const lessonEl = document.createElement('div');
+                  lessonEl.className = 'lesson-item';
+                  lessonEl.dataset.lessonId = lesson.id;
+                  lessonEl.dataset.videoId = lesson.videoId;
+                  lessonEl.dataset.title = lesson.title;
+                  lessonEl.dataset.module = module.title;
+                  lessonEl.dataset.description = lesson.description;
                   
-                  const moduleEl = document.createElement('li');
-                  moduleEl.innerHTML = `<h3>${modulo.title}</h3>`;
+                  const isCompleted = userProgress[lesson.id];
                   
-                  // Verifica se existem aulas para este módulo
-                  if (allLessons[moduleId]) {
-                      allLessons[moduleId].forEach(lesson => {
-                          const lessonEl = document.createElement('div');
-                          lessonEl.className = 'lesson-item';
-                          lessonEl.dataset.videoId = lesson.videoId;
-                          lessonEl.dataset.title = lesson.title;
-                          lessonEl.dataset.module = modulo.title;
-                          lessonEl.dataset.description = lesson.description;
-                          
-                          lessonEl.innerHTML = `
-                              <span>${lesson.title}</span>
-                              <span class="status-icon"><i class="fas fa-play"></i></span>
-                          `;
-                          
-                          lessonEl.addEventListener('click', () => loadLesson(lessonEl));
-                          moduleEl.appendChild(lessonEl);
-                          flatLessonList.push(lessonEl); // Adiciona à lista plana
-                      });
-                  }
+                  lessonEl.innerHTML = `
+                      <span>${lesson.title}</span>
+                      <span class="status-icon">${isCompleted ? '<i class="fas fa-check" style="color: var(--accent-color);"></i>' : '<i class="fas fa-play"></i>'}</span>
+                  `;
                   
-                  moduleListEl.appendChild(moduleEl);
+                  lessonEl.addEventListener('click', () => loadLesson(lessonEl));
+                  moduleEl.appendChild(lessonEl);
+                  flatLessonList.push(lessonEl); // Adiciona à lista plana
               });
               
-              // 4. Carregar a primeira aula por padrão
-              if (flatLessonList.length > 0) {
-                  loadLesson(flatLessonList[0]);
-              }
-              
-              // 5. Configurar botões de navegação
-              prevLessonBtn.addEventListener('click', loadPreviousLesson);
-              nextLessonBtn.addEventListener('click', loadNextLesson);
+              moduleListEl.appendChild(moduleEl);
+          });
+          
+          // Carrega a primeira aula por padrão
+          if (flatLessonList.length > 0) {
+              loadLesson(flatLessonList[0]);
+          }
+          
+          // Adiciona evento ao botão de Concluir
+          completeLessonBtn.addEventListener('click', markLessonAsCompleted);
+          
+          // Adiciona eventos aos botões de navegação
+          prevLessonBtn.addEventListener('click', loadPreviousLesson);
+          nextLessonBtn.addEventListener('click', loadNextLesson);
+      }
 
-          } catch (error) {
-              console.error("Erro CRÍTICO ao carregar o curso:", error);
-              lessonDescriptionEl.textContent = "Erro ao carregar o curso. Verifique as Regras do Firestore.";
+      // Carregar o Progresso do Aluno do Firestore
+      async function loadUserProgress(userId) {
+          if (!userId || !currentCourseId) return;
+          
+          const progressRef = db.collection('userProgress').doc(userId).collection(currentCourseId).doc('progress');
+          const doc = await progressRef.get();
+          
+          if (doc.exists) {
+              userProgress = doc.data().completedLessons || {};
+          } else {
+              userProgress = {};
           }
       }
 
+      // Checar status da aula carregada
+      function checkCurrentLessonStatus() {
+          if (userProgress[currentLessonId]) {
+              completeLessonBtn.disabled = true;
+              completeLessonBtn.textContent = "Concluída ✓";
+              completeLessonBtn.classList.add('completed');
+V
+          } else {
+              completeLessonBtn.disabled = false;
+              completeLessonBtn.textContent = "Marcar como Concluída";
+              completeLessonBtn.classList.remove('completed');
+          }
+      }
+      
       // Função para Carregar a Aula
       function loadLesson(lessonElement) {
           document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
           lessonElement.classList.add('active');
           
-          currentLessonIndex = flatLessonList.indexOf(lessonElement);
-          const videoId = lessonElement.dataset.videoId;
+          currentLessonId = lessonElement.dataset.lessonId; 
+          currentLessonIndex = flatLessonList.indexOf(lessonElement); // Atualiza o índice atual
           
-          videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          videoPlayer.src = `https://www.youtube.com/embed/${lessonElement.dataset.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
           lessonTitleEl.textContent = lessonElement.dataset.title;
           moduleTitleEl.textContent = lessonElement.dataset.module;
           lessonDescriptionEl.textContent = lessonElement.dataset.description;
           
-          updateNavigationButtons();
+          checkCurrentLessonStatus();
+          updateNavigationButtons(); // Atualiza botões "Próxima/Anterior"
+      }
+      
+      // Função para Marcar Aula como Concluída (Salvando no Firebase)
+      async function markLessonAsCompleted() {
+          // A verificação do 'currentUser' já foi feita pelo 'onAuthStateChanged'
+          
+          completeLessonBtn.disabled = true;
+          completeLessonBtn.textContent = "Salvando...";
+          
+          const progressRef = db.collection('userProgress').doc(currentUser.uid).collection(currentCourseId).doc('progress');
+          userProgress[currentLessonId] = true;
+
+          try {
+              await progressRef.set({
+                  completedLessons: userProgress
+              }, { merge: true });
+              
+              completeLessonBtn.textContent = "Concluída ✓";
+              completeLessonBtn.classList.add('completed');
+              const activeLessonEl = document.querySelector(`.lesson-item[data-lesson-id="${currentLessonId}"] .status-icon`);
+              if (activeLessonEl) {
+                  activeLessonEl.innerHTML = `<i class="fas fa-check" style="color: var(--accent-color);"></i>`;
+              }
+              console.log("Progresso salvo no Firebase!");
+
+          } catch (error) {
+              console.error("Erro ao salvar progresso:", error);
+              alert("Erro ao salvar seu progresso. Verifique sua conexão e tente novamente.");
+              
+              userProgress[currentLessonId] = false; 
+              completeLessonBtn.disabled = false; 
+              completeLessonBtn.textContent = "Marcar como Concluída";
+              completeLessonBtn.classList.remove('completed');
+          }
       }
       
       // Funções de navegação
