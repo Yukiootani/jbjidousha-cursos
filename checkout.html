@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | JB Jidousha Cursos</title>
+    
+    <style>
+        /* [Paleta de Cores Premium (Branco, Preto, Dourado)] */
+        :root {
+            --bg-color: #f7f7f7; 
+            --content-bg: #FFFFFF; 
+            --main-text: #333333; 
+            --light-text: #6c757d; 
+            --accent-color: #DAA520; 
+            --action-color: #333333; 
+            --border-color: #e9ecef; 
+        }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; }
+        .top-bar {
+            background-color: var(--content-bg);
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--accent-color); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
+        .top-bar a {
+            background-color: var(--action-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .checkout-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: var(--content-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        .checkout-title {
+            font-size: 1.8em;
+            color: var(--action-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .payment-info {
+            font-size: 1.1em;
+            color: var(--light-text);
+            line-height: 1.6;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>JB JIDOUSHA CURSOS</h1>
+        <a href="index.html">← Voltar ao Catálogo</a>
+    </div>
+
+    <div class="checkout-container">
+        <h1 class="checkout-title">Finalizar Matrícula</h1>
+        
+        <p>Curso Selecionado: <b id="course-name">Carregando...</b></p>
+        <p>Valor Total: <b id="course-price" style="color:var(--accent-color); font-size: 1.2em;">--</b></p>
+        
+        <div class="payment-info">
+            <p><strong>Instruções para Pagamento (Exemplo):</strong></p>
+            <p>Para finalizar sua matrícula, entre em contato com nosso time de especialistas para combinarmos o método de pagamento (PIX, Transferência JP Post, etc).</p>
+            
+            <a href="#" id="whatsapp-checkout-link" class="top-bar-button" style="display:block; text-align:center; background-color: #28a745; margin-top: 20px; padding: 12px;">
+                Finalizar Matrícula via WhatsApp
+            </a>
+        </div>
+    </div>
+    
+    <script>
+      // --- BANCO DE DADOS DE EXEMPLO (Simulando o Firestore) ---
+      const coursesDB = {
+          "curso_polimento_farol": {
+              title: "Polimento de Faróis",
+              price: "¥25,000"
+          },
+          "curso_polimento_pintura": {
+              title: "Polimento de Pintura",
+              price: "¥40,000"
+          }
+      };
+      
+      // --- LÓGICA DE CARREGAMENTO DA PÁGINA ---
+      document.addEventListener('DOMContentLoaded', () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const courseId = urlParams.get('courseId');
+          
+          if (!courseId || !coursesDB[courseId]) {
+              alert("Erro: Curso não encontrado!");
+              window.location.href = 'index.html';
+              return;
+          }
+          
+          const course = coursesDB[courseId];
+          
+          document.getElementById('course-name').textContent = course.title;
+          document.getElementById('course-price').textContent = course.price;
+          
+          // Preenche o link do WhatsApp
+          const whatsappMessage = `Olá, JB Jidousha! Quero finalizar minha matrícula no curso: ${course.title} (Valor: ${course.price}). Quais são os próximos passos para o pagamento?`;
+          document.getElementById('whatsapp-checkout-link').href = `https://wa.me/SEUNUMERO?text=${encodeURIComponent(whatsappMessage)}`;
+      });
+      
+    </script>
+</body>
+</html>
