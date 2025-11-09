@@ -133,7 +133,7 @@
       const registerForm = document.getElementById('register-form');
       const errorMessage = document.getElementById('error-message');
 
-      // 1. Lógica de Registo
+      // 1. Lógica de Registo (ATUALIZADA)
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('name').value;
@@ -146,15 +146,27 @@
           const userCredential = await auth.createUserWithEmailAndPassword(email, password);
           const user = userCredential.user;
 
-          // Passo 2: Salvar o Perfil (Nome, etc.) no Firestore
+          // Passo 2: Buscar a "Lista Mestra" de cursos padrão
+          let defaultCourses = [];
+          try {
+              const configDoc = await db.collection("configuracoes").doc("default_courses").get();
+              if (configDoc.exists) {
+                  defaultCourses = configDoc.data().coursesOwned || [];
+              }
+          } catch (configError) {
+              console.error("Erro ao buscar cursos padrão, aluno receberá 0 cursos:", configError);
+              defaultCourses = []; // Garante que o registo não falhe se a lista não existir
+          }
+
+          // Passo 3: Salvar o Perfil (Nome, etc.) no Firestore
           await db.collection('users').doc(user.uid).set({
               name: name,
               email: email,
               createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              coursesOwned: [] // Começa sem nenhum curso comprado
+              coursesOwned: defaultCourses // Adiciona os cursos da Lista Mestra
           });
 
-          // Passo 3: Redirecionar para o Dashboard (index.html)
+          // Passo 4: Redirecionar para o Dashboard (index.html)
           window.location.href = 'index.html'; 
 
         } catch (error) {
