@@ -226,11 +226,11 @@
                   // Se encontrou o perfil, carrega o dashboard
                   loadDashboard(user, userProfile); 
               } else {
-                  // 🚨 CORREÇÃO: Se não encontrou o perfil, NÃO faz logout,
-                  // apenas mostra um erro no console e permite que o Admin (que não tem perfil) veja.
-                  console.warn("Perfil do usuário não encontrado. Se você é o Admin, está tudo bem.");
-                  // Tenta carregar o dashboard (útil para o Admin)
-                  loadDashboard(user, { name: "Admin", isAdmin: true }); 
+                  // 🚨 CORREÇÃO: Se não encontrou (erro de permissão ou perfil não existe)
+                  // Não faz logout, apenas avisa.
+                  console.error("Erro fatal: Perfil do usuário não encontrado. Verifique as Regras do Firestore.");
+                  alert("Erro ao carregar seu perfil. Tente recarregar a página.");
+                  // auth.signOut(); // REMOVIDO O LOGOUT FORÇADO
               }
             }
           });
