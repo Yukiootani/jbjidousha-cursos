@@ -136,6 +136,15 @@
             font-size: 0.9em;
             font-weight: bold;
         }
+        .progress-card {
+            background-color: var(--content-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color); 
+        }
+        
     </style>
 </head>
 <body>
@@ -149,14 +158,36 @@
     </div>
 
     <div class="dashboard-container">
+
+        <div id="progress-card-container">
+            </div>
+
         <h2 class="section-title">Meus Cursos</h2>
         <div class="horizontal-scroll-container" id="my-courses-carousel">
             <p>Carregando seus cursos...</p>
         </div>
+
         <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
         <div class="horizontal-scroll-container" id="catalog-carousel">
             <p>Carregando catálogo...</p>
         </div>
+
+        <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
+        <div class="horizontal-scroll-container" id="tools-carousel">
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
+                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
+                </div>
+            </div>
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
+                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -164,6 +195,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
 
     <script>
+      // 🔑 SUAS CHAVES REAIS
       const firebaseConfig = {
         apiKey: "AIzaSyB3LB3er6lGKd95kHmOlFvO_WappclfOEg",
         authDomain: "jb-jidousha-curso.firebaseapp.com",
@@ -173,90 +205,111 @@
         appId: "1:825134171693:web:d4284a093ed261c97a1aa4",
         measurementId: "G-QLS2RVCTQ6"
       };
+
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth(); 
       const db = firebase.firestore();
       
+      // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
+      
       document.addEventListener('DOMContentLoaded', () => {
+          
           auth.onAuthStateChanged(async (user) => {
             if (!user) {
-              window.location.href = 'acesso.html'; // CORRIGIDO
+              window.location.href = 'login.html';
             } else {
+              console.log("Usuário logado:", user.uid);
+              // Tenta buscar o perfil real do aluno
               const userProfile = await getUserProfile(user.uid);
+              
               if(userProfile) {
+                  // Se encontrou o perfil, carrega o dashboard
                   loadDashboard(user, userProfile); 
               } else {
-                  console.error("Erro fatal: Perfil do usuário não encontrado.");
+                  // Se não encontrou (erro de permissão ou perfil não existe)
+                  console.error("Erro fatal: Perfil do usuário não encontrado. Verifique as Regras do Firestore.");
                   alert("Erro ao carregar seu perfil. Fazendo logout.");
                   auth.signOut();
               }
             }
           });
+
+          // Lógica de Logout
           document.getElementById('logout-btn').addEventListener('click', () => {
               auth.signOut().then(() => {
-                  window.location.href = 'acesso.html'; // CORRIGIDO
+                  window.location.href = 'login.html'; 
               });
           });
-      }); 
+      }); // Fim do DOMContentLoaded
 
+
+      // ATUALIZADO: Função para carregar o Dashboard (LENDO DO FIRESTORE)
       async function loadDashboard(currentUser, userProfile) {
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
           const welcomeTitle = document.getElementById('welcome-title');
           
+          // Personaliza o "Bem-vindo"
           welcomeTitle.textContent = `Bem-vindo(a), ${userProfile.name}!`;
+          
+          // Limpa os carrosséis
           myCoursesCarousel.innerHTML = '';
           catalogCarousel.innerHTML = '';
           
           try {
+              // 1. Busca TODOS os cursos do banco de dados
               const coursesSnapshot = await db.collection("cursos").get();
+              
               if (coursesSnapshot.empty) {
                   myCoursesCarousel.innerHTML = '<p>Nenhum curso cadastrado ainda.</p>';
                   return;
               }
+
               coursesSnapshot.forEach(doc => {
                   const course = doc.data();
                   const courseId = doc.id; 
+                  
+                  // Verifica se o aluno possui o curso
                   const isOwned = userProfile.isAdmin || (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId));
 
-                  const cardHTML = `
-                      <div class="course-card" onclick="window.location.href='player.html?courseId=${courseId}'">
-                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                          <div class="card-content">
-                              <div class="card-title">${course.title}</div>
-                              <div class="card-subtitle">${course.subtitle}</div>
-                              <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
-                          </div>
-                      </div>
-                  `;
-                  
-                  const lockedCardHTML = `
-                      <div class="course-card">
-                          <div class="lock-overlay">
-                              <i class="fas fa-lock"></i>
-                              ${course.title}
-                              <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
-                          </div>
-                          <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
-                          <div class="card-content">
-                              <div class="card-title">${course.title}</div>
-                              <div class="card-subtitle">${course.subtitle}</div>
-                          </div>
-                      </div>
-                  `;
-
                   if (isOwned) {
-                      myCoursesCarousel.innerHTML += cardHTML;
+                      // Adiciona em "Meus Cursos"
+                      myCoursesCarousel.innerHTML += `
+                          <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                                  <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
+                              </div>
+                          </div>
+                      `;
                   } else {
-                      catalogCarousel.innerHTML += lockedCardHTML;
+                      // Adiciona no "Catálogo" com cadeado
+                      catalogCarousel.innerHTML += `
+                          <div class="course-card">
+                              <div class="lock-overlay">
+                                  <i class="fas fa-lock"></i>
+                                  ${course.title}
+                                  <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
+                              </div>
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                              </div>
+                          </div>
+                      `;
                   }
               });
+
           } catch (error) {
               console.error("Erro ao carregar cursos:", error);
               myCoursesCarousel.innerHTML = `<p style="color:red;">Erro ao carregar cursos. Verifique as Regras do Firebase.</p>`;
           }
       }
       
+      // Função Helper para buscar o PERFIL do aluno
       async function getUserProfile(userId) {
           try {
               const userDoc = await db.collection('users').doc(userId).get();
@@ -271,6 +324,7 @@
               return null;
           }
       }
+      
     </script>
 </body>
 </html>
