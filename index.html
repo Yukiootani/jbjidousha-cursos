@@ -217,12 +217,8 @@
       const auth = firebase.auth(); 
       const db = firebase.firestore();
       
-      // --- DADOS DE EXEMPLO (Simulando o Banco de Dados) ---
-      
-      const userExample = {
-          name: "Aluno Exemplo",
-          coursesOwned: ["curso_higienizacao"] 
-      };
+      // --- DADOS DE EXEMPLO (Simulando o Banco de Dados de Cursos) ---
+      // (O perfil do usuário NÃO é mais de exemplo)
       
       const coursesDB = {
           "curso_higienizacao": {
@@ -274,15 +270,18 @@
 
       // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
       
-      // 🚨 CORREÇÃO DE TIMING: Espera o HTML carregar ANTES de rodar o JS
       document.addEventListener('DOMContentLoaded', () => {
-          
-          auth.onAuthStateChanged((user) => {
+          auth.onAuthStateChanged(async (user) => {
             if (!user) {
               window.location.href = 'login.html';
             } else {
               console.log("Usuário logado:", user.uid);
-              loadDashboard(user, userExample); 
+              
+              // NOVO: Busca o perfil real do aluno no Firestore
+              const userProfile = await getUserProfile(user.uid);
+              
+              // Passa o usuário real (currentUser) E o perfil real (userProfile)
+              loadDashboard(user, userProfile); 
             }
           });
 
@@ -292,18 +291,17 @@
                   window.location.href = 'login.html'; 
               });
           });
-
-      }); // <-- Fim do DOMContentLoaded
+      }); // Fim do DOMContentLoaded
 
 
       // ATUALIZADO: Função para carregar o Dashboard
-      async function loadDashboard(currentUser, userData) {
+      async function loadDashboard(currentUser, userProfile) {
           const progressContainer = document.getElementById('progress-card-container');
           const myCoursesCarousel = document.getElementById('my-courses-carousel');
           const catalogCarousel = document.getElementById('catalog-carousel');
           const toolsCarousel = document.getElementById('tools-carousel');
           
-          // Limpa os carrosséis para evitar duplicação em recarregamentos
+          // Limpa os carrosséis
           myCoursesCarousel.innerHTML = '';
           catalogCarousel.innerHTML = '';
           toolsCarousel.innerHTML = '';
@@ -315,7 +313,8 @@
           for (const courseId in coursesDB) {
               const course = coursesDB[courseId];
               
-              if (userData.coursesOwned.includes(courseId)) {
+              // Verifica se o aluno possui o curso (lendo do perfil real)
+              if (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId)) {
                   
                   // Calcular o progresso real
                   const progressData = await getUserProgress(currentUser.uid, courseId);
@@ -327,6 +326,7 @@
                       progressPercent = Math.round((completedCount / totalLessons) * 100);
                   }
                   
+                  // (Apenas para o primeiro curso)
                   if (courseId === "curso_higienizacao") {
                       overallProgressPercent = progressPercent;
                       overallProgressText = `Seu progresso no curso "${course.title}":`;
@@ -362,10 +362,10 @@
               }
           }
           
-          // 2. Renderizar Cartão de Progresso (Com dados dinâmicos)
+          // 2. Renderizar Cartão de Progresso (Com nome real)
           progressContainer.innerHTML = `
               <div class="progress-card">
-                  <h2>Bem-vindo, ${userData.name}!</h2>
+                  <h2>Bem-vindo(a), ${userProfile.name}!</h2>
                   <p style="color:var(--light-text);">${overallProgressText}</p>
                   <div class="progress-bar-container">
                       <div class="progress-bar" style="width: ${overallProgressPercent}%;"></div>
@@ -388,7 +388,18 @@
           });
       }
       
-      // 4. Função Helper para buscar o progresso
+      // 4. NOVO: Função Helper para buscar o PERFIL do aluno
+      async function getUserProfile(userId) {
+          const userDoc = await db.collection('users').doc(userId).get();
+          if (userDoc.exists) {
+              return userDoc.data(); // Retorna { name: "Nome Real", email: "...", coursesOwned: [] }
+          } else {
+              // Fallback (segurança)
+              return { name: "Novo Aluno", coursesOwned: [] };
+          }
+      }
+      
+      // 5. Função Helper para buscar o PROGRESSO
       async function getUserProgress(userId, courseId) {
           const progressRef = db.collection('userProgress').doc(userId).collection(courseId).doc('progress');
           
@@ -398,10 +409,8 @@
               if (doc.exists) {
                   const completedLessons = doc.data().completedLessons || {};
                   const completedCount = Object.keys(completedLessons).length;
-                  console.log("Progresso lido:", completedCount);
                   return { completedCount: completedCount, completedLessons: completedLessons };
               } else {
-                  console.log("Nenhum progresso encontrado, retornando 0.");
                   return { completedCount: 0, completedLessons: {} };
               }
           } catch (error) {
