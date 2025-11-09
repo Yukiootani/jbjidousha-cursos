@@ -2,197 +2,197 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Admin | JB Jidousha Cursos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Cursos | JB Jidousha Cursos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* [O CSS do Admin está aqui...] */
+        /* [Todo o CSS Premium (Branco, Preto, Dourado) está aqui...] */
         :root {
-            --accent-color: #DAA52D; 
-            --action-color: #1463a5; 
-            --error-color: #dc3545;
-            --bg-color: #f0f0f0;
-            --content-bg: #FFFFFF;
+            --bg-color: #f7f7f7; 
+            --content-bg: #FFFFFF; 
+            --main-text: #333333; 
+            --light-text: #6c757d; 
+            --accent-color: #DAA520; 
+            --action-color: #333333; /* PRETO (Botões) */
+            --border-color: #e9ecef; 
         }
-        body { font-family: Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; }
-        .container {
-            max-width: 800px; 
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); color: var(--main-text); margin: 0; padding: 0; min-height: 100vh; }
+        .top-bar {
             background-color: var(--content-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 2rem; 
-            margin: 0 auto; 
-        }
-        h1 { text-align: center; color: var(--action-color); margin-top: 0; }
-        h3 { color: var(--action-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; margin-top: 30px; }
-        label { font-weight: bold; margin-bottom: 5px; display: block; }
-        
-        input[type="text"], input[type="password"], input[type="email"], textarea, select, input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box; 
-        }
-        
-        button { 
-            padding: 12px; 
-            border: none; 
-            border-radius: 4px; 
-            font-size: 1rem; 
-            font-weight: bold; 
-            cursor: pointer; 
-            width: 100%;
-            background-color: var(--action-color);
-            color: white;
-            transition: background-color 0.3s;
-        }
-        button:hover { background-color: #0d4a7c; }
-        #btnLogout { background-color: #777; margin-top: 20px; }
-        
-        #status, #loginStatus { 
-            text-align: center; 
-            font-weight: bold; 
-            margin-top: 15px; 
-            padding: 10px; 
-            border-radius: 4px; 
-        }
-        .status.success { color: #28a745; background-color: #e9f7ec; }
-        .status.error { color: #dc3545; background-color: #fdeeee; }
-        .status.loading { color: #007bff; background-color: #e6f2ff; }
-        
-        #login-section, #admin-section {
-            border-top: 5px solid var(--accent-color);
-            padding-top: 20px;
-        }
-        
-        /* Estilos da lista de gestão */
-        .management-list { list-style-type: none; padding-left: 0; }
-        .course-item, .module-item, .lesson-item {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        .course-item > div, .module-item > div, .lesson-item > div {
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--accent-color); 
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        .module-list { padding-left: 20px; }
-        .lesson-list { padding-left: 40px; }
-        
-        .delete-btn {
-            background-color: var(--error-color);
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+        }
+        .header-logo {
+            height: 40px; 
+            width: 40px; 
+            border-radius: 4px; 
+            object-fit: cover;
+        }
+        .top-bar h1 { font-size: 1.3em; color: var(--main-text); margin: 0; font-weight: 700; }
+        .top-bar button {
+            background-color: var(--action-color);
             color: white;
-            padding: 4px 8px;
-            font-size: 0.8em;
-            width: auto; /* Tamanho automático */
-            font-weight: normal;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
         }
+        .dashboard-container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .section-title {
+            font-size: 1.8em;
+            color: var(--main-text); 
+            margin-bottom: 20px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        .horizontal-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 0 20px 0; 
+            gap: 20px;
+            min-height: 100px; /* Garante que o container apareça mesmo se vazio */
+        }
+        
+        .course-card {
+            flex: 0 0 auto; 
+            width: 300px; 
+            min-height: 250px;
+            background-color: var(--content-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .course-card:hover { transform: scale(1.02); }
+        .card-image-placeholder {
+            height: 150px;
+            background-color: #343a40; 
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .card-content { padding: 15px; }
+        .card-title {
+            font-weight: 700; 
+            color: var(--action-color); 
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        .card-subtitle {
+             color: var(--light-text);
+             font-size: 0.85em;
+             margin-bottom: 10px;
+        }
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .lock-overlay i {
+            font-size: 2.5em;
+            color: var(--accent-color); /* Cadeado Dourado */
+            margin-bottom: 10px;
+        }
+        .lock-overlay button {
+            margin-top: 15px;
+            background-color: var(--accent-color);
+            color: var(--main-text);
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .progress-card {
+            background-color: var(--content-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color); 
+        }
+        
     </style>
 </head>
 <body>
+    
+    <div class="top-bar">
+        <div class="logo-container">
+            <img src="https://artebrasil.jp/wp-content/uploads/2024/02/Midia-1-654D52D1-1AAC-49EB-9596-CFEBD3F04B96.jpg" alt="JB Jidousha Logo" class="header-logo">
+            <h1 id="welcome-title">JB JIDOUSHA CURSOS</h1>
+        </div>
+        <button id="logout-btn">Sair</button>
+    </div>
 
-    <div class="container">
-        <h1>Admin JB Jidousha Cursos</h1>
+    <div class="dashboard-container">
 
-        <section id="login-section">
-            <h3>Acesso Restrito</h3>
-            <form id="loginForm">
-                <label for="login-email">Email:</label>
-                <input type="email" id="login-email" required>
-                <label for="login-password">Senha:</label>
-                <input type="password" id="login-password" required>
-                <button type="submit" id="btnLogin">Entrar</button>
-            </form>
-            <div id="loginStatus" class="status"></div>
-        </section>
+        <div id="progress-card-container">
+            </div>
 
-        <section id="admin-section" style="display: none;">
-            
-            <div id="status" class="status"></div>
+        <h2 class="section-title">Meus Cursos</h2>
+        <div class="horizontal-scroll-container" id="my-courses-carousel">
+            <p>Carregando seus cursos...</p>
+        </div>
 
-            <h3>1. Adicionar Novo Curso</h3>
-            <form id="formCurso">
-                <label for="course-id">ID Único do Curso (sem espaços):</label>
-                <input type="text" id="course-id" placeholder="Ex: curso_higienizacao_v1" required>
-                
-                <label for="course-title">Título do Curso:</label>
-                <input type="text" id="course-title" placeholder="Ex: Higienização Profissional" required>
-                
-                <label for="course-subtitle">Subtítulo (Descrição Curta):</label>
-                <input type="text" id="course-subtitle" placeholder="O ponto de partida para a sua nova profissão." required>
-                
-                <label for="course-icon">Ícone (FontAwesome):</label>
-                <input type="text" id="course-icon" placeholder="Ex: fa-car-wash" required>
+        <h2 class="section-title">Catálogo Completo JB Jidousha</h2>
+        <div class="horizontal-scroll-container" id="catalog-carousel">
+            <p>Carregando catálogo...</p>
+        </div>
 
-                <button type="submit">Salvar Novo Curso</button>
-            </form>
-            
-            <hr style="margin: 30px 0;">
-
-            <h3>2. Adicionar Novo Módulo</h3>
-            <form id="formModulo">
-                <label for="module-course">Selecionar Curso:</label>
-                <select id="module-course" required>
-                    <option value="">-- Carregando Cursos... --</option>
-                </select>
-                
-                <label for="module-title">Título do Módulo:</label>
-                <input type="text" id="module-title" placeholder="Ex: Módulo 1: Fundamentos" required>
-                
-                <label for="module-order">Ordem (Número):</label>
-                <input type="number" id="module-order" placeholder="1" required>
-                
-                <button type="submit">Salvar Módulo</button>
-            </form>
-            
-            <hr style="margin: 30px 0;">
-            
-            <form id="formAula">
-                <h3>3. Adicionar Nova Aula</h3>
-                
-                <label for="lesson-course-select">Selecionar Curso (para filtrar módulos):</label>
-                <select id="lesson-course-select" required>
-                    <option value="">-- Carregando Cursos... --</option>
-                </select>
-
-                <label for="lesson-module">Selecionar Módulo:</label>
-                <select id="lesson-module" required>
-                    <option value="">-- Selecione um curso primeiro --</option>
-                </select>
-                
-                <label for="lesson-title">Título da Aula:</label>
-                <input type="text" id="lesson-title" placeholder="Ex: 1.1 Segurança e Produtos" required>
-                
-                <label for="lesson-videoid">ID do Vídeo (YouTube):</label>
-                <input type="text" id="lesson-videoid" placeholder="Ex: iWiE3_bToUk" required>
-                
-                <label for="lesson-description">Descrição Curta:</label>
-                <textarea id="lesson-description" rows="3" placeholder="O que o aluno vai aprender..."></textarea>
-                
-                <label for="lesson-order">Ordem (Número):</label>
-                <input type="number" id="lesson-order" placeholder="1" required>
-
-                <button type="submit" id="btnSalvarAula">Salvar Aula</button>
-            </form>
-            
-            <hr style="margin: 30px 0;">
-            
-            <h3>Conteúdo Atual da Plataforma</h3>
-            <div id="content-list">
+        <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
+        <div class="horizontal-scroll-container" id="tools-carousel">
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
+                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
                 </div>
+            </div>
+            <div class="course-card" style="min-height: 150px;">
+                <div class="card-content">
+                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
+                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
+                </div>
+            </div>
+        </div>
 
-            <button id="btnLogout">Sair (Logout)</button>
-        </section>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
 
     <script>
       // 🔑 SUAS CHAVES REAIS
@@ -206,322 +206,126 @@
         measurementId: "G-QLS2RVCTQ6"
       };
 
-      // Inicialização
       firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
       const auth = firebase.auth(); 
-
-      // Coleções
-      const CURSOS_COLLECTION = "cursos";
-      const MODULOS_COLLECTION = "modulos";
-      const AULAS_COLLECTION = "aulas";
-      const USERS_COLLECTION = "users";
-
-      // Elementos do HTML
-      const loginSection = document.getElementById('login-section');
-      const adminSection = document.getElementById('admin-section');
-      const loginForm = document.getElementById('loginForm');
-      const loginStatusDiv = document.getElementById('loginStatus');
-      const statusDiv = document.getElementById('status');
-      const btnLogout = document.getElementById('btnLogout');
+      const db = firebase.firestore();
       
-      const formCurso = document.getElementById('formCurso');
-      const formModulo = document.getElementById('formModulo');
-      const formAula = document.getElementById('formAula');
+      // --- LÓGICA DE PROTEÇÃO E RENDERIZAÇÃO ---
       
-      const selectCourseInModuloForm = document.getElementById('module-course'); // Form 2
-      const selectCourseInAulaForm = document.getElementById('lesson-course-select'); // Form 3
-      const selectModuleInAulaForm = document.getElementById('lesson-module'); // Form 3
-      
-      const contentListDiv = document.getElementById('content-list');
-
-      let cacheCursos = []; 
-      let cacheModulos = []; 
-
-      function showStatus(div, message, type) {
-          div.textContent = message;
-          div.className = 'status ' + type; 
-      }
-
-      // --- LÓGICA DE CARREGAMENTO ---
-
-      async function loadAllContent() {
-          // Limpa todos os menus
-          selectCourseInModuloForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
-          selectCourseInAulaForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
-          selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>'; 
-          contentListDiv.innerHTML = '<p>Carregando...</p>';
+      document.addEventListener('DOMContentLoaded', () => {
           
-          cacheCursos = [];
-          cacheModulos = [];
+          auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+              window.location.href = 'login.html';
+            } else {
+              console.log("Usuário logado:", user.uid);
+              // Tenta buscar o perfil real do aluno
+              const userProfile = await getUserProfile(user.uid);
+              
+              if(userProfile) {
+                  // Se encontrou o perfil, carrega o dashboard
+                  loadDashboard(user, userProfile); 
+              } else {
+                  // 🚨 CORREÇÃO: Se não encontrou o perfil, NÃO faz logout,
+                  // apenas mostra um erro no console e permite que o Admin (que não tem perfil) veja.
+                  console.warn("Perfil do usuário não encontrado. Se você é o Admin, está tudo bem.");
+                  // Tenta carregar o dashboard (útil para o Admin)
+                  loadDashboard(user, { name: "Admin", isAdmin: true }); 
+              }
+            }
+          });
+
+          // Lógica de Logout
+          document.getElementById('logout-btn').addEventListener('click', () => {
+              auth.signOut().then(() => {
+                  window.location.href = 'login.html'; 
+              });
+          });
+      }); // Fim do DOMContentLoaded
+
+
+      // ATUALIZADO: Função para carregar o Dashboard (LENDO DO FIRESTORE)
+      async function loadDashboard(currentUser, userProfile) {
+          const myCoursesCarousel = document.getElementById('my-courses-carousel');
+          const catalogCarousel = document.getElementById('catalog-carousel');
+          const welcomeTitle = document.getElementById('welcome-title');
+          
+          // Personaliza o "Bem-vindo"
+          welcomeTitle.textContent = `Bem-vindo(a), ${userProfile.name}!`;
+          
+          // Limpa os carrosséis
+          myCoursesCarousel.innerHTML = '';
+          catalogCarousel.innerHTML = '';
           
           try {
-              // 1. Buscar Cursos
-              const coursesSnapshot = await db.collection(CURSOS_COLLECTION).get();
+              // 1. Busca TODOS os cursos do banco de dados
+              const coursesSnapshot = await db.collection("cursos").get();
+              
+              if (coursesSnapshot.empty) {
+                  myCoursesCarousel.innerHTML = '<p>Nenhum curso cadastrado ainda.</p>';
+                  return;
+              }
+
               coursesSnapshot.forEach(doc => {
                   const course = doc.data();
-                  course.id = doc.id;
-                  cacheCursos.push(course);
-                  // Popula AMBOS os dropdowns de curso (Form 2 e Form 3)
-                  selectCourseInModuloForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
-                  selectCourseInAulaForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
-              });
-              
-              // 2. Buscar Módulos
-              const modulesSnapshot = await db.collection(MODULOS_COLLECTION).orderBy("order").get();
-              modulesSnapshot.forEach(doc => {
-                  const modulo = doc.data();
-                  modulo.id = doc.id;
-                  cacheModulos.push(modulo);
-              });
+                  const courseId = doc.id; 
+                  
+                  // Verifica se o aluno possui o curso
+                  const isOwned = userProfile.isAdmin || (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId));
 
-              // 3. Buscar Aulas
-              const lessonsSnapshot = await db.collection(AULAS_COLLECTION).orderBy("order").get();
-              const allLessons = {};
-              lessonsSnapshot.forEach(doc => {
-                  const lesson = doc.data();
-                  lesson.id = doc.id;
-                  if (!allLessons[lesson.moduleId]) {
-                      allLessons[lesson.moduleId] = [];
+                  if (isOwned) {
+                      // Adiciona em "Meus Cursos"
+                      myCoursesCarousel.innerHTML += `
+                          <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                                  <p style="font-size:0.8em; color:var(--action-color); font-weight:bold;">Acessar Curso</p>
+                              </div>
+                          </div>
+                      `;
+                  } else {
+                      // Adiciona no "Catálogo" com cadeado
+                      catalogCarousel.innerHTML += `
+                          <div class="course-card">
+                              <div class="lock-overlay">
+                                  <i class="fas fa-lock"></i>
+                                  ${course.title}
+                                  <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
+                              </div>
+                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              <div class="card-content">
+                                  <div class="card-title">${course.title}</div>
+                                  <div class="card-subtitle">${course.subtitle}</div>
+                              </div>
+                          </div>
+                      `;
                   }
-                  allLessons[lesson.moduleId].push(lesson);
               });
-              
-              // 4. Renderizar a Lista Completa
-              renderContentList(cacheCursos, cacheModulos, allLessons);
 
           } catch (error) {
-              console.error("Erro ao carregar conteúdo:", error);
-              showStatus(statusDiv, "Erro ao carregar conteúdo: " + error.message, "error");
+              console.error("Erro ao carregar cursos:", error);
+              myCoursesCarousel.innerHTML = `<p style="color:red;">Erro ao carregar cursos. Verifique as Regras do Firebase.</p>`;
           }
       }
       
-      // Função para renderizar a lista
-      function renderContentList(cursos, modulos, aulas) {
-          let html = '<ul class="management-list">';
-          
-          cursos.forEach(curso => {
-              html += `<li class="course-item">
-                          <div>
-                              <strong>${curso.title} (ID: ${curso.id})</strong>
-                              <button class="delete-btn" data-id="${curso.id}" data-type="curso">Excluir Curso</button>
-                          </div>`;
-              
-              const modulosDoCurso = modulos.filter(m => m.courseId === curso.id);
-              
-              if (modulosDoCurso.length > 0) {
-                  html += '<ul class="module-list">';
-                  modulosDoCurso.forEach(modulo => {
-                      html += `<li class="module-item">
-                                  <div>
-                                      ${modulo.title} (Ordem: ${modulo.order})
-                                      <button class="delete-btn" data-id="${modulo.id}" data-type="modulo">Excluir Módulo</button>
-                                  </div>`;
-                      
-                      if (aulas[modulo.id] && aulas[modulo.id].length > 0) {
-                          html += '<ul class="lesson-list">';
-                          aulas[modulo.id].forEach(aula => {
-                              html += `<li class="lesson-item">
-                                          <div>
-                                              ${aula.title} (Ordem: ${aula.order})
-                                              <button class="delete-btn" data-id="${aula.id}" data-type="aula">Excluir Aula</button>
-                                          </div>
-                                      </li>`;
-                          });
-                          html += '</ul>';
-                      }
-                      html += '</li>';
-                  });
-                  html += '</ul>';
+      // Função Helper para buscar o PERFIL do aluno
+      async function getUserProfile(userId) {
+          try {
+              const userDoc = await db.collection('users').doc(userId).get();
+              if (userDoc.exists) {
+                  return userDoc.data(); 
+              } else {
+                  console.warn("Perfil do usuário não encontrado no Firestore.");
+                  return null;
               }
-              html += '</li>';
-          });
-          html += '</ul>';
-          contentListDiv.innerHTML = html;
-      }
-      
-
-      // --- LÓGICA DE EVENTOS ---
-
-      // Funções de Excluir
-      async function deleteItem(id, collectionName) {
-          const confirmationText = collectionName === CURSOS_COLLECTION ? 
-              'EXCLUIR CURSO? Isto apagará o curso, mas NÃO os módulos ou aulas dentro dele (faça isso manualmente).' :
-              (collectionName === MODULOS_COLLECTION ? 
-              'EXCLUIR MÓDULO? Isto NÃO apagará as aulas dentro dele (faça isso manualmente).' :
-              'EXCLUIR AULA?');
-              
-          if (!confirm(confirmationText)) return;
-          
-          try {
-              await db.collection(collectionName).doc(id).delete();
-              showStatus(statusDiv, "Item excluído com sucesso!", "success");
-              loadAllContent(); // Recarrega tudo
           } catch (error) {
-              showStatus(statusDiv, "Erro ao excluir: " + error.message, "error");
+              console.error("Erro ao buscar perfil:", error);
+              return null;
           }
       }
       
-      // Event listener para os cliques na lista (excluir)
-      contentListDiv.addEventListener('click', (e) => {
-          if (e.target.classList.contains('delete-btn')) {
-              const id = e.target.dataset.id;
-              const type = e.target.dataset.type;
-              
-              if (type === 'curso') deleteItem(id, CURSOS_COLLECTION);
-              if (type === 'modulo') deleteItem(id, MODULOS_COLLECTION);
-              if (type === 'aula') deleteItem(id, AULAS_COLLECTION);
-          }
-      });
-      
-      // Event Listener para filtrar os módulos quando um curso é selecionado (NO FORM 3)
-      selectCourseInAulaForm.addEventListener('change', () => {
-          const selectedCourseId = selectCourseInAulaForm.value;
-          populateModuleSelect(selectedCourseId);
-      });
-      
-      // Função: Popula o dropdown de Módulos (Form 3)
-      function populateModuleSelect(selectedCourseId) {
-          selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione o Módulo --</option>'; // Limpa
-
-          if (!selectedCourseId) {
-              selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>';
-              return;
-          }
-
-          // Filtra o cache de módulos
-          const modulosDoCurso = cacheModulos.filter(m => m.courseId === selectedCourseId);
-          
-          if (modulosDoCurso.length === 0) {
-              selectModuleInAulaForm.innerHTML = '<option value="">-- Nenhum módulo para este curso --</option>';
-          }
-
-          // Adiciona os módulos filtrados ao dropdown
-          modulosDoCurso.forEach(modulo => {
-              selectModuleInAulaForm.innerHTML += `<option value="${modulo.id}">${modulo.title}</option>`;
-          });
-      }
-
-
-      // 1. Salvar Curso
-      formCurso.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const courseId = document.getElementById('course-id').value; // Pega o ID manual
-          const title = document.getElementById('course-title').value;
-          const subtitle = document.getElementById('course-subtitle').value;
-          const icon = document.getElementById('course-icon').value;
-          
-          if (!courseId) {
-              showStatus(statusDiv, "Erro: O ID Único do Curso é obrigatório.", "error");
-              return;
-          }
-          
-          try {
-              // Usa o ID manual (set) em vez de automático (add)
-              await db.collection(CURSOS_COLLECTION).doc(courseId).set({
-                  title: title,
-                  subtitle: subtitle,
-                  icon: icon
-              });
-              showStatus(statusDiv, "Curso salvo com sucesso!", "success");
-              formCurso.reset();
-              loadAllContent(); // Recarrega tudo
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar curso: " + error.message, "error");
-          }
-      });
-      
-      // 2. Salvar Módulo
-      formModulo.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const courseId = document.getElementById('module-course').value;
-          const title = document.getElementById('module-title').value;
-          const order = parseInt(document.getElementById('module-order').value);
-          
-          if (!courseId) {
-              showStatus(statusDiv, "Erro: Selecione um curso.", "error");
-              return;
-          }
-          
-          try {
-              await db.collection(MODULOS_COLLECTION).add({
-                  courseId: courseId,
-                  title: title,
-                  order: order
-              });
-              showStatus(statusDiv, "Módulo salvo com sucesso!", "success");
-              formModulo.reset();
-              loadAllContent(); 
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar módulo: " + error.message, "error");
-          }
-      });
-      
-      // 3. Salvar Aula
-      formAula.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const moduleId = document.getElementById('lesson-module').value; // Corrigido
-          const title = document.getElementById('lesson-title').value;
-          const videoId = document.getElementById('lesson-videoid').value;
-          const description = document.getElementById('lesson-description').value;
-          const order = parseInt(document.getElementById('lesson-order').value);
-
-          if (!moduleId) {
-              showStatus(statusDiv, "Erro: Selecione um módulo.", "error");
-              return;
-          }
-
-          try {
-              await db.collection(AULAS_COLLECTION).add({
-                  moduleId: moduleId,
-                  title: title,
-                  videoId: videoId,
-                  description: description,
-                  order: order
-              });
-              showStatus(statusDiv, "Aula salva com sucesso!", "success");
-              formAula.reset();
-              loadAllContent(); 
-          } catch (error) {
-              showStatus(statusDiv, "Erro ao salvar aula: " + error.message, "error");
-          }
-      });
-
-      // 4. Lógica de Login
-      loginForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const email = document.getElementById('login-email').value;
-          const password = document.getElementById('login-password').value;
-          showStatus(loginStatusDiv, 'Tentando entrar...', 'loading');
-          try {
-              await auth.signInWithEmailAndPassword(email, password);
-          } catch (error) {
-              showStatus(loginStatusDiv, `Erro de Acesso: ${error.message}`, 'error');
-          }
-      });
-
-      // 5. Lógica de Logout
-      btnLogout.addEventListener('click', async () => {
-          await auth.signOut();
-      });
-
-      // 6. Verificação de Estado de Autenticação (SIMPLIFICADA)
-      // 🚨 CORREÇÃO CRÍTICA: Removida a verificação de "isAdmin" daqui.
-      auth.onAuthStateChanged(async (user) => {
-          if (user) {
-              // Se o login funcionar, mostra o painel.
-              // As Regras do Firebase (que você definiu para "Modo de Teste") farão a segurança.
-              loginSection.style.display = 'none';
-              adminSection.style.display = 'block';
-              loadAllContent(); 
-          } else {
-              // Utilizador DESLOGADO
-              loginSection.style.display = 'block';
-              adminSection.style.display = 'none';
-          }
-      });
-        
     </script>
-
 </body>
 </html>
