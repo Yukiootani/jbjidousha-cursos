@@ -218,7 +218,6 @@
       const db = firebase.firestore();
       
       // --- DADOS DE EXEMPLO (Simulando o Banco de Dados de Cursos) ---
-      // (O perfil do usuário NÃO é mais de exemplo)
       
       const coursesDB = {
           "curso_higienizacao": {
@@ -277,10 +276,8 @@
             } else {
               console.log("Usuário logado:", user.uid);
               
-              // NOVO: Busca o perfil real do aluno no Firestore
               const userProfile = await getUserProfile(user.uid);
               
-              // Passa o usuário real (currentUser) E o perfil real (userProfile)
               loadDashboard(user, userProfile); 
             }
           });
@@ -308,12 +305,12 @@
           
           let overallProgressPercent = 0;
           let overallProgressText = "Nenhum progresso ainda.";
+          let courseFound = false; // Flag para o cartão de progresso
           
           // 1. Renderizar Carrosséis
           for (const courseId in coursesDB) {
               const course = coursesDB[courseId];
               
-              // Verifica se o aluno possui o curso (lendo do perfil real)
               if (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId)) {
                   
                   // Calcular o progresso real
@@ -326,10 +323,10 @@
                       progressPercent = Math.round((completedCount / totalLessons) * 100);
                   }
                   
-                  // (Apenas para o primeiro curso)
-                  if (courseId === "curso_higienizacao") {
+                  if (!courseFound) { // Pega o progresso do primeiro curso
                       overallProgressPercent = progressPercent;
                       overallProgressText = `Seu progresso no curso "${course.title}":`;
+                      courseFound = true;
                   }
 
                   // Adiciona em "Meus Cursos"
