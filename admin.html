@@ -92,6 +92,15 @@
             width: auto; /* Tamanho automático */
             font-weight: normal;
         }
+        
+        /* NOVO: Estilo do Formulário 5 */
+        #student-lookup-result {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -191,6 +200,27 @@
             </form>
 
             <hr style="margin: 30px 0;">
+
+            <h3>5. Gerir Alunos (Liberar Cursos)</h3>
+            <form id="formManageStudent">
+                <label for="student-email">Procurar Aluno por E-mail:</label>
+                <input type="email" id="student-email" placeholder="aluno@exemplo.com" required>
+                <button type_ ="button" id="btnSearchStudent">Procurar Aluno</button>
+            </form>
+            
+            <div id="student-lookup-result" style="display:none;">
+                <h4 id="student-name">Nome do Aluno</h4>
+                <p>Cursos Atuais: <span id="student-courses"></span></p>
+                
+                <hr>
+                <label for="course-to-add">Adicionar novo curso a este aluno:</label>
+                <select id="course-to-add">
+                    <option value="">-- Selecione o curso para liberar --</option>
+                </select>
+                <button type="button" id="btnAddCourseToStudent" style="background-color: var(--accent-color); color: #333; margin-top: 10px;">Liberar Curso para Aluno</button>
+            </div>
+            
+            <hr style="margin: 30px 0;">
             
             <h3>Conteúdo Atual da Plataforma</h3>
             <div id="content-list">
@@ -248,6 +278,13 @@
       const contentListDiv = document.getElementById('content-list');
       const defaultCoursesInput = document.getElementById('default-courses'); 
 
+      // NOVO: Formulário 5
+      const btnSearchStudent = document.getElementById('btnSearchStudent');
+      const studentLookupResult = document.getElementById('student-lookup-result');
+      const selectCourseToAdd = document.getElementById('course-to-add');
+      const btnAddCourseToStudent = document.getElementById('btnAddCourseToStudent');
+      let foundStudentId = null; // Guarda o ID do aluno encontrado
+
       let cacheCursos = []; 
       let cacheModulos = []; 
 
@@ -263,6 +300,8 @@
           selectCourseInModuloForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
           selectCourseInAulaForm.innerHTML = '<option value="">-- Selecione o Curso --</option>';
           selectModuleInAulaForm.innerHTML = '<option value="">-- Selecione um curso primeiro --</option>'; 
+          selectCourseToAdd.innerHTML = '<option value="">-- Selecione o curso para liberar --</option>'; // NOVO
+          
           contentListDiv.innerHTML = '<p>Carregando...</p>';
           
           cacheCursos = [];
@@ -277,6 +316,7 @@
                   cacheCursos.push(course);
                   selectCourseInModuloForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
                   selectCourseInAulaForm.innerHTML += `<option value="${course.id}">${course.title}</option>`;
+                  selectCourseToAdd.innerHTML += `<option value="${course.id}">${course.title} (ID: ${course.id})</option>`; // NOVO
               });
               
               // 2. Buscar Módulos
@@ -538,33 +578,86 @@
           await auth.signOut();
       });
 
-      // 7. Verificação de Estado de Autenticação (REMOVIDO O LOGOUT FORÇADO)
+      // 7. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN)
       auth.onAuthStateChanged(async (user) => {
           if (user) {
               try {
                   const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
-                  
-                  // Verifica se o perfil existe E se a flag isAdmin é verdadeira
                   if (userDoc.exists && userDoc.data().isAdmin === true) {
-                      // SIM, É ADMIN
                       loginSection.style.display = 'none';
                       adminSection.style.display = 'block';
                       loadAllContent(); 
                   } else {
-                      // NÃO, É UM ALUNO NORMAL
                       showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
-                      auth.signOut(); // Expulsa o aluno normal do admin.html
+                      auth.signOut(); 
                   }
               } catch (error) {
-                  // Ocorreu um erro ao LER o perfil (Regras erradas)
                   console.error("Erro ao verificar permissão de admin:", error);
                   showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras.`, "error");
-                  auth.signOut(); // Expulsa se houver erro de leitura
+                  auth.signOut();
               }
           } else {
-              // Utilizador DESLOGADO
               loginSection.style.display = 'block';
               adminSection.style.display = 'none';
+          }
+      });
+      
+      // --- NOVO: LÓGICA DO FORMULÁRIO 5 ---
+      
+      btnSearchStudent.addEventListener('click', async () => {
+          const email = document.getElementById('student-email').value;
+          if (!email) return;
+          
+          showStatus(statusDiv, "Procurando aluno...", "loading");
+          studentLookupResult.style.display = 'none';
+          foundStudentId = null;
+          
+          try {
+              const querySnapshot = await db.collection(USERS_COLLECTION).where("email", "==", email).get();
+              
+              if (querySnapshot.empty) {
+                  showStatus(statusDiv, "Aluno não encontrado.", "error");
+                  return;
+              }
+              
+              const studentDoc = querySnapshot.docs[0];
+              const studentData = studentDoc.data();
+              foundStudentId = studentDoc.id; // Salva o ID do aluno
+              
+              document.getElementById('student-name').textContent = `Nome: ${studentData.name}`;
+              document.getElementById('student-courses').textContent = (studentData.coursesOwned || []).join(', ') || "Nenhum";
+              
+              studentLookupResult.style.display = 'block';
+              showStatus(statusDiv, "Aluno encontrado!", "success");
+              
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao procurar aluno: " + error.message, "error");
+          }
+      });
+      
+      btnAddCourseToStudent.addEventListener('click', async () => {
+          const courseIdToAdd = selectCourseToAdd.value;
+          if (!courseIdToAdd || !foundStudentId) {
+              alert("Erro: Nenhum aluno ou curso selecionado.");
+              return;
+          }
+          
+          showStatus(statusDiv, "Liberando curso...", "loading");
+          
+          try {
+              const studentRef = db.collection(USERS_COLLECTION).doc(foundStudentId);
+              
+              // Usa 'arrayUnion' para adicionar o ID ao array sem duplicar
+              await studentRef.update({
+                  coursesOwned: firebase.firestore.FieldValue.arrayUnion(courseIdToAdd)
+              });
+              
+              showStatus(statusDiv, "Curso liberado com sucesso!", "success");
+              // Recarrega os dados do aluno
+              btnSearchStudent.click(); 
+              
+          } catch (error) {
+              showStatus(statusDiv, "Erro ao liberar curso: " + error.message, "error");
           }
       });
         
