@@ -149,6 +149,7 @@
           // Passo 2: Buscar a "Lista Mestra" de cursos padrão
           let defaultCourses = [];
           try {
+              // Lê a lista que o Admin salvou
               const configDoc = await db.collection("configuracoes").doc("default_courses").get();
               if (configDoc.exists) {
                   defaultCourses = configDoc.data().coursesOwned || [];
@@ -163,7 +164,8 @@
               name: name,
               email: email,
               createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              coursesOwned: defaultCourses // Adiciona os cursos da Lista Mestra
+              coursesOwned: defaultCourses, // Adiciona os cursos da Lista Mestra
+              isAdmin: false // Garante que é um aluno
           });
 
           // Passo 4: Redirecionar para o Dashboard (index.html)
