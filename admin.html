@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Admin | JB Jidousha Cursos</title>
+    
     <style>
+        /* [O CSS do Admin está aqui...] */
         :root {
-            --accent-color: #DAA520; 
+            --accent-color: #DAA52D; 
             --action-color: #1463a5; 
             --error-color: #dc3545;
             --bg-color: #f0f0f0;
@@ -536,14 +538,13 @@
           await auth.signOut();
       });
 
-      // 7. Verificação de Estado de Autenticação (COM VERIFICAÇÃO DE ADMIN E GESTÃO DE ERROS)
+      // 7. Verificação de Estado de Autenticação (REMOVIDO O LOGOUT FORÇADO)
       auth.onAuthStateChanged(async (user) => {
           if (user) {
-              // Utilizador está logado. ELE É ADMIN?
               try {
                   const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
                   
-                  // 🚨 CORREÇÃO CRÍTICA (O seu Admin não tinha perfil, então falhava)
+                  // Verifica se o perfil existe E se a flag isAdmin é verdadeira
                   if (userDoc.exists && userDoc.data().isAdmin === true) {
                       // SIM, É ADMIN
                       loginSection.style.display = 'none';
@@ -552,12 +553,12 @@
                   } else {
                       // NÃO, É UM ALUNO NORMAL
                       showStatus(loginStatusDiv, "Erro: Você não tem permissão de Admin.", "error");
-                      auth.signOut(); // Expulsa o aluno normal
+                      auth.signOut(); // Expulsa o aluno normal do admin.html
                   }
               } catch (error) {
-                  // Ocorreu um erro ao LER o perfil
+                  // Ocorreu um erro ao LER o perfil (Regras erradas)
                   console.error("Erro ao verificar permissão de admin:", error);
-                  showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras do Firebase.`, "error");
+                  showStatus(loginStatusDiv, `Erro de Permissão: ${error.message}. Verifique as Regras.`, "error");
                   auth.signOut(); // Expulsa se houver erro de leitura
               }
           } else {
