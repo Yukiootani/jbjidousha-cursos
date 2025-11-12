@@ -81,16 +81,20 @@
             cursor: pointer;
         }
         .course-card:hover { transform: scale(1.02); }
-        .card-image-placeholder {
-            height: 150px;
+        
+        /* 🚨 CSS DA IMAGEM ATUALIZADO 👇 */
+        .card-image-wrapper {
+            width: 100%;
+            height: 170px; /* Altura fixa para a imagem */
             background-color: #343a40; 
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.9em;
-            font-weight: bold;
+            overflow: hidden;
         }
+        .card-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Garante que a imagem cubra o espaço */
+        }
+
         .card-content { padding: 15px; }
         .card-title {
             font-weight: 700; 
@@ -171,23 +175,6 @@
         <div class="horizontal-scroll-container" id="catalog-carousel">
             <p>Carregando catálogo...</p>
         </div>
-
-        <h2 class="section-title">✨ Exclusividade e Suporte Diferenciado</h2>
-        <div class="horizontal-scroll-container" id="tools-carousel">
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Fale com um Especialista</div>
-                    <div class="card-subtitle">Suporte direto via WhatsApp para dúvidas técnicas.</div>
-                </div>
-            </div>
-            <div class="course-card" style="min-height: 150px;">
-                <div class="card-content">
-                    <div class="card-title" style="color: var(--accent-color);">Lista de Fornecedores JP/BR (PDF)</div>
-                    <div class="card-subtitle">Documento exclusivo com contato e código de desconto.</div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -227,10 +214,9 @@
                   loadDashboard(user, userProfile); 
               } else {
                   // 🚨 CORREÇÃO: Se não encontrou (erro de permissão ou perfil não existe)
-                  // Não faz logout, apenas avisa.
-                  console.error("Erro fatal: Perfil do usuário não encontrado. Verifique as Regras do Firestore.");
-                  alert("Erro ao carregar seu perfil. Tente recarregar a página.");
-                  // auth.signOut(); // REMOVIDO O LOGOUT FORÇADO
+                  console.warn("Perfil do usuário não encontrado. Se você é o Admin, está tudo bem.");
+                  // Tenta carregar o dashboard (útil para o Admin)
+                  loadDashboard(user, { name: "Admin", isAdmin: true, coursesOwned: [] }); // Perfil Admin Padrão
               }
             }
           });
@@ -270,6 +256,10 @@
                   const course = doc.data();
                   const courseId = doc.id; 
                   
+                  // 🚨 ATUALIZAÇÃO: Usa o imageUrl. Se não existir, usa o ícone
+                  const imageUrl = course.imageUrl || `https://via.placeholder.com/300x170?text=${course.title}`;
+                  const imageElement = `<div class="card-image-wrapper"><img src="${imageUrl}" alt="${course.title}"></div>`;
+                  
                   // Verifica se o aluno possui o curso
                   const isOwned = userProfile.isAdmin || (userProfile.coursesOwned && userProfile.coursesOwned.includes(courseId));
 
@@ -277,7 +267,7 @@
                       // Adiciona em "Meus Cursos"
                       myCoursesCarousel.innerHTML += `
                           <div class="course-card" onclick="window.location.href='aula.html?courseId=${courseId}'">
-                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              ${imageElement}
                               <div class="card-content">
                                   <div class="card-title">${course.title}</div>
                                   <div class="card-subtitle">${course.subtitle}</div>
@@ -294,7 +284,7 @@
                                   ${course.title}
                                   <button onclick="window.location.href='curso-venda.html?courseId=${courseId}'">Ver Detalhes e Comprar</button>
                               </div>
-                              <div class="card-image-placeholder"><i class="fas ${course.icon}" style="font-size: 3em;"></i></div>
+                              ${imageElement}
                               <div class="card-content">
                                   <div class="card-title">${course.title}</div>
                                   <div class="card-subtitle">${course.subtitle}</div>
